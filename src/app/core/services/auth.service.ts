@@ -1,47 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, tap } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiEnvelope } from '../models/api.model';
 import {
   AcceptInviteRequest,
   AuthResponse,
   LoginRequest,
+  MeResponse,
   RefreshResponse,
   RegisterRequest,
   User,
-  UserRole,
 } from '../models/user.model';
 import { TokenStorageService } from './token-storage.service';
-
-function base64UrlDecode(input: string): string {
-  const padded = input
-    .replace(/-/g, '+')
-    .replace(/_/g, '/')
-    .padEnd(input.length + ((4 - (input.length % 4)) % 4), '=');
-  return atob(padded);
-}
-
-/**
- * Best-effort claims read from an access token. The backend has no `/auth/me` endpoint,
- * so restoring a session after a page reload (via the httpOnly refresh cookie, which only
- * returns a new access token) has nothing else to rebuild `currentUser` from. `email` is
- * not in the token and stays blank until the next real login.
- */
-function decodeAccessTokenClaims(token: string): { sub: string; role: UserRole } | null {
-  const parts = token.split('.');
-  if (parts.length !== 3) return null;
-
-  try {
-    const payload = JSON.parse(base64UrlDecode(parts[1])) as { sub?: unknown; role?: unknown };
-    if (typeof payload.sub === 'string' && typeof payload.role === 'string') {
-      return { sub: payload.sub, role: payload.role as UserRole };
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -102,21 +73,40 @@ export class AuthService {
       );
   }
 
-  /** Silent refresh using the httpOnly cookie; never throws. */
+  /** Exchanges the httpOnly refresh cookie for a new access token. Does not touch `currentUser`. */
   refresh(): Observable<RefreshResponse> {
     return this.http
       .post<ApiEnvelope<RefreshResponse>>(`${environment.apiUrl}/auth/refresh`, {}, { withCredentials: true })
       .pipe(
         map((res) => res.data),
-        tap((res) => this.setSessionFromToken(res.accessToken)),
+        tap((res) => this.tokenStorage.setAccessToken(res.accessToken)),
       );
   }
 
-  /** Called once at app bootstrap to restore a session from the refresh cookie. */
+  /** Fetches the caller's own user record for the current access token and updates `currentUser`. */
+  getMe(): Observable<User> {
+    return this.http.get<ApiEnvelope<MeResponse>>(`${environment.apiUrl}/auth/me`).pipe(
+      map((res) => res.data.user),
+      tap((user) => this.currentUserSignal.set(user)),
+    );
+  }
+
+  /**
+   * Called once at app bootstrap to restore a session from the refresh cookie.
+   * A page reload starts with an empty `TokenStorageService` (in-memory only,
+   * see its own doc comment) and no `currentUser`, so this rebuilds both: the
+   * refresh cookie yields a fresh access token, then `/auth/me` yields the
+   * user record (email included — it isn't in the JWT) that the access token
+   * alone can't provide.
+   */
   tryRestoreSession(): Observable<boolean> {
     return this.refresh().pipe(
+      switchMap(() => this.getMe()),
       map(() => true),
-      catchError(() => of(false)),
+      catchError(() => {
+        this.clearSession();
+        return of(false);
+      }),
       tap(() => this.initializedSignal.set(true)),
     );
   }
@@ -129,14 +119,6 @@ export class AuthService {
   private setSession(res: AuthResponse): void {
     this.tokenStorage.setAccessToken(res.accessToken);
     this.currentUserSignal.set(res.user);
-  }
-
-  private setSessionFromToken(accessToken: string): void {
-    this.tokenStorage.setAccessToken(accessToken);
-    const claims = decodeAccessTokenClaims(accessToken);
-    if (claims) {
-      this.currentUserSignal.set({ id: claims.sub, email: '', role: claims.role, isActive: true });
-    }
   }
 
   private clearSession(): void {

@@ -160,27 +160,6 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                       {{ 'game.board.holeActive' | translate }}
                     </span>
                   }
-                  @if (canInvokeDoubleAnswer()) {
-                    <button
-                      type="button"
-                      class="inline-flex items-center gap-1.5 rounded-full border border-accent-dark/40 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-accent-dark transition hover:scale-105 hover:bg-accent-soft disabled:opacity-50 disabled:hover:scale-100"
-                      [title]="translateService.t('game.board.doubleAnswerHint')"
-                      [disabled]="invokingDoubleAnswer()"
-                      (click)="useDoubleAnswer()"
-                    >
-                      <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
-                      {{ 'game.board.useDoubleAnswer' | translate }}
-                    </button>
-                  }
-                  @if (doubleAnswerInvokedForTile()) {
-                    <span
-                      class="inline-flex items-center gap-1.5 rounded-full bg-accent-soft py-1.5 ps-1.5 pe-3 text-xs font-semibold text-accent-dark"
-                      [title]="translateService.t('game.board.doubleAnswerHint')"
-                    >
-                      <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
-                      {{ 'game.board.doubleAnswerActive' | translate }}
-                    </span>
-                  }
                 </div>
 
                 <div class="mt-6 flex justify-center gap-3">
@@ -208,27 +187,6 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
 
               @if (phase() === 'question' && tileQuestion(); as question) {
                 <div class="mt-3 flex flex-wrap justify-center gap-2">
-                  @if (canInvokeHole()) {
-                    <button
-                      type="button"
-                      class="inline-flex items-center gap-1.5 rounded-full border border-secondary/40 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-secondary-dark transition hover:scale-105 hover:bg-secondary-soft disabled:opacity-50 disabled:hover:scale-100"
-                      [title]="translateService.t('game.board.holeHint')"
-                      [disabled]="invokingHole()"
-                      (click)="useHole()"
-                    >
-                      <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
-                      {{ 'game.board.useHole' | translate }}
-                    </button>
-                  }
-                  @if (holeInvokedForTile()) {
-                    <span
-                      class="inline-flex items-center gap-1.5 rounded-full bg-secondary-soft py-1.5 ps-1.5 pe-3 text-xs font-semibold text-secondary-dark"
-                      [title]="translateService.t('game.board.holeHint')"
-                    >
-                      <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
-                      {{ 'game.board.holeActive' | translate }}
-                    </span>
-                  }
                   @if (canInvokeDoubleAnswer()) {
                     <button
                       type="button"
@@ -455,11 +413,13 @@ export class BoardComponent implements OnInit, OnDestroy {
     return this.pickingTeam()?.name ?? '';
   }
 
+  /** الحفرة must be committed to before the question is opened — the team steals blind. Rendered in the 'pre' phase only. */
   protected canInvokeHole(): boolean {
     const team = this.pickingTeam();
     return !!team && team.hasHole && !team.holeUsed && !this.holeInvokedForTile();
   }
 
+  /** محاولتين, like الفخ, only makes sense once the team has read the question. Rendered in the 'question' phase only. */
   protected canInvokeDoubleAnswer(): boolean {
     const team = this.pickingTeam();
     return !!team && team.hasDoubleAnswer && !team.doubleAnswerUsed && !this.doubleAnswerInvokedForTile();

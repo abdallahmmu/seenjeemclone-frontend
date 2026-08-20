@@ -18,6 +18,11 @@ export interface RefreshResponse {
   accessToken: string;
 }
 
+/** GET /auth/me returns the caller's own user record for the given access token. */
+export interface MeResponse {
+  user: User;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
