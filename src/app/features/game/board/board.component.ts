@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Category } from '../../../core/models/category.model';
 import { POINTS_BY_DIFFICULTY, RevealTileResponse, Tile, TileQuestion } from '../../../core/models/game.model';
@@ -13,6 +14,7 @@ import { apiErrorMessage } from '../../../shared/utils/api-error';
 import { categoryImageUrl } from '../../../shared/utils/category-image';
 import { formatElapsed } from '../../../shared/utils/format-elapsed';
 import { helperToolIconUrl } from '../../../shared/utils/helper-tool-icon';
+import { resolveVideoEmbed } from '../../../shared/utils/media-embed';
 import { GameStateService } from '../services/game-state.service';
 import { GameService } from '../services/game.service';
 
@@ -232,6 +234,53 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                 </div>
 
                 <div class="animate-fade-in-up mt-5 rounded-2xl bg-linear-to-br from-slate-50 to-primary-soft p-6 text-center shadow-inner">
+                  @if (question.mediaType === 'AUDIO' && question.mediaUrl) {
+                    <div class="mb-4 flex justify-center">
+                      <audio [src]="question.mediaUrl" controls autoplay class="w-full max-w-sm"></audio>
+                    </div>
+                  }
+                  @if (question.mediaType === 'VIDEO' && videoEmbed(); as embed) {
+                    <div class="mb-4">
+                      @if (!videoStarted()) {
+                        <button
+                          type="button"
+                          class="mx-auto inline-flex items-center gap-2 rounded-full bg-linear-to-l from-primary to-secondary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/30 transition hover:scale-105"
+                          (click)="startVideo()"
+                        >
+                          <svg viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                          {{ 'game.board.playVideo' | translate }}
+                        </button>
+                      } @else if (videoEnded()) {
+                        <div
+                          class="mx-auto flex max-w-md items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-white/60 p-6 text-sm font-semibold text-slate-500"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5">
+                            <path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round" />
+                          </svg>
+                          {{ 'game.board.videoAlreadyPlayed' | translate }}
+                        </div>
+                      } @else if (embed.kind === 'file') {
+                        <video
+                          [src]="embed.src"
+                          controls
+                          autoplay
+                          playsinline
+                          (ended)="onVideoEnded()"
+                          class="mx-auto w-full max-w-md rounded-xl shadow-lg"
+                        ></video>
+                      } @else {
+                        <iframe
+                          [src]="safeUrl(embed.src)"
+                          allow="autoplay; encrypted-media"
+                          allowfullscreen
+                          frameborder="0"
+                          class="mx-auto aspect-video w-full max-w-md rounded-xl shadow-lg"
+                        ></iframe>
+                      }
+                    </div>
+                  }
                   <h2 class="text-xl leading-snug font-black text-slate-900">{{ question.text }}</h2>
                 </div>
 
@@ -301,6 +350,7 @@ export class BoardComponent implements OnInit, OnDestroy {
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly sanitizer = inject(DomSanitizer);
   protected readonly translateService = inject(TranslateService);
 
   protected readonly loading = signal(true);
@@ -313,6 +363,13 @@ export class BoardComponent implements OnInit, OnDestroy {
   protected readonly reveal = signal<RevealTileResponse | null>(null);
   protected readonly elapsedSeconds = signal(0);
 
+  // Single-play video is enforced client-side only (this component's own
+  // state, reset per tile in openTile) — a page refresh resets it, which is
+  // an accepted tradeoff for a game that's always host-supervised on one
+  // screen rather than something that needs server-side anti-cheat.
+  protected readonly videoStarted = signal(false);
+  protected readonly videoEnded = signal(false);
+
   protected readonly holeInvokedForTile = signal(false);
   protected readonly trapInvokedForTile = signal(false);
   protected readonly doubleAnswerInvokedForTile = signal(false);
@@ -324,6 +381,12 @@ export class BoardComponent implements OnInit, OnDestroy {
   protected readonly resolving = signal(false);
 
   protected readonly elapsedLabel = computed(() => formatElapsed(this.elapsedSeconds()));
+
+  protected readonly videoEmbed = computed(() => {
+    const question = this.tileQuestion();
+    if (!question || question.mediaType !== 'VIDEO' || !question.mediaUrl) return null;
+    return resolveVideoEmbed(question.mediaUrl, true);
+  });
 
   protected readonly difficulties = DIFFICULTIES;
   protected readonly pointsByDifficulty = POINTS_BY_DIFFICULTY;
@@ -441,6 +504,20 @@ export class BoardComponent implements OnInit, OnDestroy {
     this.holeInvokedForTile.set(tile.holeInvoked);
     this.trapInvokedForTile.set(tile.trapInvoked);
     this.doubleAnswerInvokedForTile.set(tile.doubleAnswerInvoked);
+    this.videoStarted.set(false);
+    this.videoEnded.set(false);
+  }
+
+  protected startVideo(): void {
+    this.videoStarted.set(true);
+  }
+
+  protected onVideoEnded(): void {
+    this.videoEnded.set(true);
+  }
+
+  protected safeUrl(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   protected closeModal(): void {

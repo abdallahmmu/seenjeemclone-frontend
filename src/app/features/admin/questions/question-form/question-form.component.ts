@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Category } from '../../../../core/models/category.model';
-import { Difficulty } from '../../../../core/models/question.model';
+import { Difficulty, QuestionMediaType } from '../../../../core/models/question.model';
 import { TranslateService } from '../../../../core/services/translate.service';
 import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -97,6 +97,29 @@ import { AdminService } from '../../services/admin.service';
           ></textarea>
         </div>
 
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2" dir="ltr">
+          <div>
+            <label class="block text-sm font-medium text-slate-700">{{ 'admin.questions.media' | translate }}</label>
+            <select formControlName="mediaType" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <option [ngValue]="null">{{ 'admin.questions.mediaNone' | translate }}</option>
+              <option value="AUDIO">{{ 'admin.questions.mediaAudio' | translate }}</option>
+              <option value="VIDEO">{{ 'admin.questions.mediaVideo' | translate }}</option>
+            </select>
+          </div>
+          @if (form.controls.mediaType.value) {
+            <div>
+              <label class="block text-sm font-medium text-slate-700">{{ 'admin.questions.mediaUrl' | translate }}</label>
+              <input
+                formControlName="mediaUrl"
+                type="url"
+                [placeholder]="'admin.questions.mediaUrlPlaceholder' | translate"
+                class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+              <p class="mt-1 text-xs text-slate-500">{{ 'admin.questions.mediaUrlHint' | translate }}</p>
+            </div>
+          }
+        </div>
+
         <div class="flex items-center gap-2" dir="ltr">
           <input id="active" type="checkbox" formControlName="active" class="h-4 w-4 rounded border-slate-300" />
           <label for="active" class="text-sm text-slate-700">{{ 'common.active' | translate }}</label>
@@ -141,6 +164,8 @@ export class QuestionFormComponent implements OnInit {
     explanation: [''],
     active: [true],
     options: this.fb.array([this.createOption(), this.createOption()]),
+    mediaType: this.fb.control<QuestionMediaType | null>(null),
+    mediaUrl: [''],
   });
 
   private questionId = '';
@@ -164,6 +189,8 @@ export class QuestionFormComponent implements OnInit {
             text: question.text,
             explanation: question.explanation ?? '',
             active: question.active,
+            mediaType: question.mediaType,
+            mediaUrl: question.mediaUrl ?? '',
           });
           this.optionsArray.clear();
           question.options.forEach((option) => this.optionsArray.push(this.createOption(option)));
@@ -200,8 +227,14 @@ export class QuestionFormComponent implements OnInit {
       return;
     }
 
-    this.saving.set(true);
     const value = this.form.getRawValue();
+
+    if (value.mediaType && !value.mediaUrl.trim()) {
+      this.toastService.error('A clip URL is required when a media type is selected.');
+      return;
+    }
+
+    this.saving.set(true);
     const payload = {
       categoryId: value.categoryId,
       difficulty: value.difficulty,
@@ -209,6 +242,8 @@ export class QuestionFormComponent implements OnInit {
       options: value.options,
       correctOptionIndex: this.correctOptionIndex(),
       explanation: value.explanation || null,
+      mediaType: value.mediaType,
+      mediaUrl: value.mediaType ? value.mediaUrl.trim() : null,
       active: value.active,
     };
     const request = this.isEdit()

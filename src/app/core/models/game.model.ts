@@ -1,4 +1,4 @@
-import { Difficulty } from './question.model';
+import { Difficulty, QuestionMediaType } from './question.model';
 
 export interface Team {
   id: string;
@@ -74,6 +74,8 @@ export interface TileQuestion {
   ownerTeamIndex: number;
   text: string;
   options: string[];
+  mediaType: QuestionMediaType | null;
+  mediaUrl: string | null;
   pickedAt: string;
 }
 

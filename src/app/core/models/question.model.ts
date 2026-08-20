@@ -1,6 +1,9 @@
 /** Question content is Arabic-only by design — no bilingual fields here. */
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
+/** An optional clip alongside the question text. Never both set to different truthiness — see mediaUrl. */
+export type QuestionMediaType = 'AUDIO' | 'VIDEO';
+
 export interface Question {
   id: string;
   categoryId: string;
@@ -9,6 +12,9 @@ export interface Question {
   options: string[];
   correctOptionIndex: number;
   explanation: string | null;
+  /** Never uploaded/stored by this app — an external link only (direct file or a YouTube/Vimeo-style embed). */
+  mediaType: QuestionMediaType | null;
+  mediaUrl: string | null;
   active: boolean;
   createdAt: string;
 }
@@ -20,6 +26,8 @@ export interface CreateQuestionRequest {
   options: string[];
   correctOptionIndex: number;
   explanation?: string | null;
+  mediaType?: QuestionMediaType | null;
+  mediaUrl?: string | null;
   active?: boolean;
 }
 
