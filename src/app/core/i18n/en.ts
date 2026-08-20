@@ -137,7 +137,7 @@ export const en = {
       turn: 'Turn',
       turnOf: "{{team}}'s turn",
       useTrap: 'الفخ',
-      trapHint: 'Forces the other team to answer — choose before opening the question',
+      trapHint: 'Forces the other team to answer instead of you — use it any time while the question is open',
       trapActive: 'الفخ activated',
       useHole: 'استخدم الحفرة',
       holeHint: 'Steal the points if this team answers correctly',

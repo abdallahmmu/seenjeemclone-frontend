@@ -2,7 +2,9 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject
 import { ActivatedRoute, Router } from '@angular/router';
 import { Category } from '../../../core/models/category.model';
 import { POINTS_BY_DIFFICULTY, RevealTileResponse, Tile, TileQuestion } from '../../../core/models/game.model';
+import { HelperTool, WiredHelperToolKey } from '../../../core/models/helper-tool.model';
 import { Difficulty } from '../../../core/models/question.model';
+import { HelperToolService } from '../../../core/services/helper-tool.service';
 import { TranslateService } from '../../../core/services/translate.service';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
@@ -10,6 +12,7 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { apiErrorMessage } from '../../../shared/utils/api-error';
 import { categoryImageUrl } from '../../../shared/utils/category-image';
 import { formatElapsed } from '../../../shared/utils/format-elapsed';
+import { helperToolIconUrl } from '../../../shared/utils/helper-tool-icon';
 import { GameStateService } from '../services/game-state.service';
 import { GameService } from '../services/game.service';
 
@@ -97,192 +100,236 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
       </div>
 
       @if (selectedTile(); as tile) {
-        <div class="animate-fade-in fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
-          <div class="animate-pop-in w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl">
-            <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
-              <span>{{ categoryLabel(tile.categoryId) }} · {{ pointsByDifficulty[tile.difficulty] }} {{ 'game.board.pointsSuffix' | translate }}</span>
-              @if (phase() === 'question') {
-                <span class="animate-pulse-ring rounded-full bg-primary-soft px-3 py-1 text-primary-dark">
-                  {{ 'game.board.elapsed' | translate }}: {{ elapsedLabel() }}
+        <div class="animate-fade-in fixed inset-0 z-40 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
+          <div class="animate-pop-in w-full max-w-xl rounded-3xl bg-linear-to-br from-primary via-secondary to-accent p-[3px] shadow-2xl shadow-primary/30">
+            <div class="rounded-[calc(1.5rem-1px)] bg-white p-6">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-2">
+                  <img
+                    [src]="categoryImage(tile.categoryId)"
+                    alt=""
+                    class="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-primary-soft"
+                  />
+                  <span class="truncate text-sm font-bold text-slate-700">{{ categoryLabel(tile.categoryId) }}</span>
+                </div>
+                <span
+                  class="animate-glow-pulse shrink-0 rounded-full bg-linear-to-l from-accent-dark to-accent px-4 py-1.5 text-sm font-black text-white"
+                >
+                  {{ pointsByDifficulty[tile.difficulty] }} {{ 'game.board.pointsSuffix' | translate }}
                 </span>
+              </div>
+
+              @if (phase() === 'question') {
+                <div class="mt-3 flex justify-center">
+                  <span
+                    class="animate-pulse-ring inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary-dark"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    {{ 'game.board.elapsed' | translate }}: {{ elapsedLabel() }}
+                  </span>
+                </div>
+              }
+
+              @if (phase() === 'pre') {
+                <h2 class="mt-5 text-center text-lg font-black" [class]="tile.ownerTeamIndex === 0 ? 'text-team-a' : 'text-team-b'">
+                  {{ pickingTeamName() }}
+                </h2>
+
+                <div class="mt-4 flex flex-wrap justify-center gap-2">
+                  @if (canInvokeHole()) {
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-1.5 rounded-full border border-secondary/40 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-secondary-dark transition hover:scale-105 hover:bg-secondary-soft disabled:opacity-50 disabled:hover:scale-100"
+                      [title]="translateService.t('game.board.holeHint')"
+                      [disabled]="invokingHole()"
+                      (click)="useHole()"
+                    >
+                      <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
+                      {{ 'game.board.useHole' | translate }}
+                    </button>
+                  }
+                  @if (holeInvokedForTile()) {
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded-full bg-secondary-soft py-1.5 ps-1.5 pe-3 text-xs font-semibold text-secondary-dark"
+                      [title]="translateService.t('game.board.holeHint')"
+                    >
+                      <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
+                      {{ 'game.board.holeActive' | translate }}
+                    </span>
+                  }
+                  @if (canInvokeDoubleAnswer()) {
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-1.5 rounded-full border border-accent-dark/40 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-accent-dark transition hover:scale-105 hover:bg-accent-soft disabled:opacity-50 disabled:hover:scale-100"
+                      [title]="translateService.t('game.board.doubleAnswerHint')"
+                      [disabled]="invokingDoubleAnswer()"
+                      (click)="useDoubleAnswer()"
+                    >
+                      <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
+                      {{ 'game.board.useDoubleAnswer' | translate }}
+                    </button>
+                  }
+                  @if (doubleAnswerInvokedForTile()) {
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded-full bg-accent-soft py-1.5 ps-1.5 pe-3 text-xs font-semibold text-accent-dark"
+                      [title]="translateService.t('game.board.doubleAnswerHint')"
+                    >
+                      <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
+                      {{ 'game.board.doubleAnswerActive' | translate }}
+                    </span>
+                  }
+                </div>
+
+                <div class="mt-6 flex justify-center gap-3">
+                  <button
+                    type="button"
+                    class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                    (click)="closeModal()"
+                  >
+                    {{ 'common.cancel' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="animate-glow-pulse inline-flex items-center gap-2 rounded-full bg-linear-to-l from-primary to-secondary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/30 transition hover:scale-105 disabled:animate-none disabled:opacity-50 disabled:hover:scale-100"
+                    [disabled]="openingQuestion()"
+                    (click)="openQuestion()"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                      <rect x="5" y="11" width="14" height="9" rx="2" />
+                      <path d="M8 11V7a4 4 0 0 1 7.5-2" stroke-linecap="round" />
+                    </svg>
+                    {{ 'game.board.openQuestion' | translate }}
+                  </button>
+                </div>
+              }
+
+              @if (phase() === 'question' && tileQuestion(); as question) {
+                <div class="mt-3 flex flex-wrap justify-center gap-2">
+                  @if (canInvokeHole()) {
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-1.5 rounded-full border border-secondary/40 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-secondary-dark transition hover:scale-105 hover:bg-secondary-soft disabled:opacity-50 disabled:hover:scale-100"
+                      [title]="translateService.t('game.board.holeHint')"
+                      [disabled]="invokingHole()"
+                      (click)="useHole()"
+                    >
+                      <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
+                      {{ 'game.board.useHole' | translate }}
+                    </button>
+                  }
+                  @if (holeInvokedForTile()) {
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded-full bg-secondary-soft py-1.5 ps-1.5 pe-3 text-xs font-semibold text-secondary-dark"
+                      [title]="translateService.t('game.board.holeHint')"
+                    >
+                      <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
+                      {{ 'game.board.holeActive' | translate }}
+                    </span>
+                  }
+                  @if (canInvokeDoubleAnswer()) {
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-1.5 rounded-full border border-accent-dark/40 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-accent-dark transition hover:scale-105 hover:bg-accent-soft disabled:opacity-50 disabled:hover:scale-100"
+                      [title]="translateService.t('game.board.doubleAnswerHint')"
+                      [disabled]="invokingDoubleAnswer()"
+                      (click)="useDoubleAnswer()"
+                    >
+                      <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
+                      {{ 'game.board.useDoubleAnswer' | translate }}
+                    </button>
+                  }
+                  @if (doubleAnswerInvokedForTile()) {
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded-full bg-accent-soft py-1.5 ps-1.5 pe-3 text-xs font-semibold text-accent-dark"
+                      [title]="translateService.t('game.board.doubleAnswerHint')"
+                    >
+                      <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
+                      {{ 'game.board.doubleAnswerActive' | translate }}
+                    </span>
+                  }
+                  @if (canInvokeTrap()) {
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-1.5 rounded-full border border-red-300 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-red-700 transition hover:scale-105 hover:bg-red-50 disabled:opacity-50 disabled:hover:scale-100"
+                      [title]="translateService.t('game.board.trapHint')"
+                      [disabled]="invokingTrap()"
+                      (click)="useTrap()"
+                    >
+                      <img [src]="toolIcon('trap')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-red-200" />
+                      {{ 'game.board.useTrap' | translate }}
+                    </button>
+                  }
+                  @if (trapInvokedForTile()) {
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded-full bg-red-100 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-red-700"
+                      [title]="translateService.t('game.board.trapHint')"
+                    >
+                      <img [src]="toolIcon('trap')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-red-200" />
+                      {{ 'game.board.trapActive' | translate }}
+                    </span>
+                  }
+                </div>
+
+                <div class="animate-fade-in-up mt-5 rounded-2xl bg-linear-to-br from-slate-50 to-primary-soft p-6 text-center shadow-inner">
+                  <h2 class="text-xl leading-snug font-black text-slate-900">{{ question.text }}</h2>
+                </div>
+
+                <div class="mt-6 flex justify-center">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-full bg-linear-to-l from-primary to-secondary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/30 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                    [disabled]="revealing()"
+                    (click)="revealAnswer()"
+                  >
+                    {{ 'game.board.next' | translate }}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                      <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                </div>
+              }
+
+              @if (phase() === 'revealed' && reveal(); as revealData) {
+                <div class="animate-pop-in mt-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4 text-center">
+                  <p class="text-xs font-bold tracking-wide text-emerald-700 uppercase">{{ 'game.board.correctAnswer' | translate }}</p>
+                  <p class="mt-1 text-lg font-black text-emerald-900">{{ correctOptionText(revealData) }}</p>
+                  @if (revealData.explanation) {
+                    <p class="mt-2 text-sm text-emerald-800">{{ revealData.explanation }}</p>
+                  }
+                </div>
+
+                <p class="mt-5 text-center text-sm font-semibold text-slate-700">{{ 'game.board.whoAnswered' | translate }}</p>
+                <div class="mt-2 grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    class="rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-a transition hover:border-team-a hover:bg-team-a-soft disabled:opacity-50"
+                    [disabled]="resolving()"
+                    (click)="resolve(0)"
+                  >
+                    {{ gameState.session()?.teams?.[0]?.name }} ✓
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-500 transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50"
+                    [disabled]="resolving()"
+                    (click)="resolve(null)"
+                  >
+                    {{ 'game.board.noOneAnswered' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-b transition hover:border-team-b hover:bg-team-b-soft disabled:opacity-50"
+                    [disabled]="resolving()"
+                    (click)="resolve(1)"
+                  >
+                    {{ gameState.session()?.teams?.[1]?.name }} ✓
+                  </button>
+                </div>
               }
             </div>
-
-            @if (phase() === 'pre') {
-              <h2 class="mt-4 text-base font-semibold text-slate-800">{{ pickingTeamName() }}</h2>
-
-              <div class="mt-4 flex flex-wrap gap-2">
-                @if (canInvokeHole()) {
-                  <button
-                    type="button"
-                    class="max-w-40 truncate rounded-full border border-secondary/40 px-3 py-1.5 text-xs font-semibold text-secondary-dark transition hover:bg-secondary-soft disabled:opacity-50"
-                    [title]="translateService.t('game.board.holeHint')"
-                    [disabled]="invokingHole()"
-                    (click)="useHole()"
-                  >
-                    {{ 'game.board.useHole' | translate }}
-                  </button>
-                }
-                @if (holeInvokedForTile()) {
-                  <span
-                    class="rounded-full bg-secondary-soft px-3 py-1.5 text-xs font-semibold text-secondary-dark"
-                    [title]="translateService.t('game.board.holeHint')"
-                  >
-                    {{ 'game.board.holeActive' | translate }}
-                  </span>
-                }
-                @if (canInvokeDoubleAnswer()) {
-                  <button
-                    type="button"
-                    class="max-w-40 truncate rounded-full border border-accent-dark/40 px-3 py-1.5 text-xs font-semibold text-accent-dark transition hover:bg-accent-soft disabled:opacity-50"
-                    [title]="translateService.t('game.board.doubleAnswerHint')"
-                    [disabled]="invokingDoubleAnswer()"
-                    (click)="useDoubleAnswer()"
-                  >
-                    {{ 'game.board.useDoubleAnswer' | translate }}
-                  </button>
-                }
-                @if (doubleAnswerInvokedForTile()) {
-                  <span
-                    class="rounded-full bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent-dark"
-                    [title]="translateService.t('game.board.doubleAnswerHint')"
-                  >
-                    {{ 'game.board.doubleAnswerActive' | translate }}
-                  </span>
-                }
-                @if (canInvokeTrap()) {
-                  <button
-                    type="button"
-                    class="max-w-40 truncate rounded-full border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
-                    [title]="translateService.t('game.board.trapHint')"
-                    [disabled]="invokingTrap()"
-                    (click)="useTrap()"
-                  >
-                    {{ 'game.board.useTrap' | translate }}
-                  </button>
-                }
-                @if (trapInvokedForTile()) {
-                  <span
-                    class="rounded-full bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700"
-                    [title]="translateService.t('game.board.trapHint')"
-                  >
-                    {{ 'game.board.trapActive' | translate }}
-                  </span>
-                }
-              </div>
-
-              <div class="mt-6 flex justify-end gap-3">
-                <button
-                  type="button"
-                  class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
-                  (click)="closeModal()"
-                >
-                  {{ 'common.cancel' | translate }}
-                </button>
-                <button
-                  type="button"
-                  class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:opacity-50"
-                  [disabled]="openingQuestion()"
-                  (click)="openQuestion()"
-                >
-                  {{ 'game.board.openQuestion' | translate }}
-                </button>
-              </div>
-            }
-
-            @if (phase() === 'question' && tileQuestion(); as question) {
-              <div class="mt-3 flex flex-wrap gap-2">
-                @if (canInvokeHole()) {
-                  <button
-                    type="button"
-                    class="max-w-40 truncate rounded-full border border-secondary/40 px-3 py-1.5 text-xs font-semibold text-secondary-dark transition hover:bg-secondary-soft disabled:opacity-50"
-                    [title]="translateService.t('game.board.holeHint')"
-                    [disabled]="invokingHole()"
-                    (click)="useHole()"
-                  >
-                    {{ 'game.board.useHole' | translate }}
-                  </button>
-                }
-                @if (holeInvokedForTile()) {
-                  <span
-                    class="rounded-full bg-secondary-soft px-3 py-1.5 text-xs font-semibold text-secondary-dark"
-                    [title]="translateService.t('game.board.holeHint')"
-                  >
-                    {{ 'game.board.holeActive' | translate }}
-                  </span>
-                }
-                @if (canInvokeDoubleAnswer()) {
-                  <button
-                    type="button"
-                    class="max-w-40 truncate rounded-full border border-accent-dark/40 px-3 py-1.5 text-xs font-semibold text-accent-dark transition hover:bg-accent-soft disabled:opacity-50"
-                    [title]="translateService.t('game.board.doubleAnswerHint')"
-                    [disabled]="invokingDoubleAnswer()"
-                    (click)="useDoubleAnswer()"
-                  >
-                    {{ 'game.board.useDoubleAnswer' | translate }}
-                  </button>
-                }
-                @if (doubleAnswerInvokedForTile()) {
-                  <span
-                    class="rounded-full bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent-dark"
-                    [title]="translateService.t('game.board.doubleAnswerHint')"
-                  >
-                    {{ 'game.board.doubleAnswerActive' | translate }}
-                  </span>
-                }
-              </div>
-
-              <h2 class="mt-4 text-lg font-bold text-slate-900">{{ question.text }}</h2>
-
-              <div class="mt-6 flex justify-end">
-                <button
-                  type="button"
-                  class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:opacity-50"
-                  [disabled]="revealing()"
-                  (click)="revealAnswer()"
-                >
-                  {{ 'game.board.next' | translate }}
-                </button>
-              </div>
-            }
-
-            @if (phase() === 'revealed' && reveal(); as revealData) {
-              <div class="animate-fade-in-up mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                <p class="text-sm font-semibold text-emerald-800">{{ 'game.board.correctAnswer' | translate }}:</p>
-                <p class="mt-1 font-bold text-emerald-900">{{ correctOptionText(revealData) }}</p>
-                @if (revealData.explanation) {
-                  <p class="mt-2 text-sm text-emerald-800">{{ 'game.board.explanation' | translate }}: {{ revealData.explanation }}</p>
-                }
-              </div>
-
-              <p class="mt-4 text-sm font-semibold text-slate-700">{{ 'game.board.whoAnswered' | translate }}</p>
-              <div class="mt-2 grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  class="rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-a transition hover:border-team-a disabled:opacity-50"
-                  [disabled]="resolving()"
-                  (click)="resolve(0)"
-                >
-                  {{ gameState.session()?.teams?.[0]?.name }} ✓
-                </button>
-                <button
-                  type="button"
-                  class="rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-500 transition hover:border-slate-400 disabled:opacity-50"
-                  [disabled]="resolving()"
-                  (click)="resolve(null)"
-                >
-                  {{ 'game.board.noOneAnswered' | translate }}
-                </button>
-                <button
-                  type="button"
-                  class="rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-b transition hover:border-team-b disabled:opacity-50"
-                  [disabled]="resolving()"
-                  (click)="resolve(1)"
-                >
-                  {{ gameState.session()?.teams?.[1]?.name }} ✓
-                </button>
-              </div>
-            }
           </div>
         </div>
       }
@@ -292,6 +339,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
 export class BoardComponent implements OnInit, OnDestroy {
   protected readonly gameState = inject(GameStateService);
   private readonly gameService = inject(GameService);
+  private readonly helperToolService = inject(HelperToolService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -299,6 +347,7 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   protected readonly loading = signal(true);
   protected readonly categories = signal<Category[]>([]);
+  protected readonly helperTools = signal<HelperTool[]>([]);
 
   protected readonly selectedTile = signal<Tile | null>(null);
   protected readonly phase = signal<ModalPhase>('pre');
@@ -356,6 +405,12 @@ export class BoardComponent implements OnInit, OnDestroy {
         // Best-effort only — the board still works with bare category ids.
       },
     });
+    this.helperToolService.getHelperTools().subscribe({
+      next: (tools) => this.helperTools.set(tools),
+      error: () => {
+        // Best-effort only — toolIcon() falls back to the per-key default icon.
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -366,6 +421,11 @@ export class BoardComponent implements OnInit, OnDestroy {
     const category = this.categories().find((c) => c.id === categoryId);
     if (!category) return categoryId.slice(0, 8);
     return this.translateService.lang() === 'ar' ? category.nameAr : category.nameEn;
+  }
+
+  protected toolIcon(key: WiredHelperToolKey): string {
+    const tool = this.helperTools().find((t) => t.key === key);
+    return helperToolIconUrl({ iconUrl: tool?.iconUrl ?? null, key });
   }
 
   protected categoryImage(categoryId: string): string {
@@ -405,7 +465,7 @@ export class BoardComponent implements OnInit, OnDestroy {
     return !!team && team.hasDoubleAnswer && !team.doubleAnswerUsed && !this.doubleAnswerInvokedForTile();
   }
 
-  /** الفخ works on any tile now, but only before the question is opened — see openTile/openQuestion. */
+  /** الفخ works on any tile, but only once the question is open — the owning team reads it first, then decides. Rendered in the 'question' phase only. */
   protected canInvokeTrap(): boolean {
     const team = this.pickingTeam();
     return !!team && team.hasTrap && !team.trapUsed && !this.trapInvokedForTile();

@@ -92,6 +92,21 @@ html[dir='rtl'] body {
   }
 }
 
+/* Game-show-style "spotlight" glow for the board's points badge and CTAs. */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--color-accent) 55%, transparent),
+      0 4px 14px color-mix(in srgb, var(--color-accent-dark) 30%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 6px transparent,
+      0 4px 20px color-mix(in srgb, var(--color-accent-dark) 55%, transparent);
+  }
+}
+
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out both;
 }
@@ -112,6 +127,10 @@ html[dir='rtl'] body {
   animation: pulse-ring 2s infinite;
 }
 
+.animate-glow-pulse {
+  animation: glow-pulse 2.2s ease-in-out infinite;
+}
+
 /* FAQ accordion: animates to the panel's natural height with no JS measuring. */
 .faq-panel {
   display: grid;
@@ -130,7 +149,8 @@ html[dir='rtl'] body {
   .animate-fade-in,
   .animate-pop-in,
   .animate-float,
-  .animate-pulse-ring {
+  .animate-pulse-ring,
+  .animate-glow-pulse {
     animation: none;
   }
   .faq-panel {
