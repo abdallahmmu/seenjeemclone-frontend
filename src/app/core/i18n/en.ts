@@ -227,6 +227,7 @@ export const en = {
       correctAnswer: 'Correct answer',
       import: 'Bulk import',
       onePerDifficulty: 'Each category has exactly one question per difficulty tier.',
+      difficultyTaken: 'This category already has a question at this difficulty — pick another one, or edit the existing question instead.',
       media: 'Attached clip',
       mediaNone: 'No clip',
       mediaAudio: 'Audio',
