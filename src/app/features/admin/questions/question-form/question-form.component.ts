@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { distinctUntilChanged, of, startWith, switchMap } from 'rxjs';
 import { Category } from '../../../../core/models/category.model';
 import { Difficulty, QuestionMediaType } from '../../../../core/models/question.model';
 import { TranslateService } from '../../../../core/services/translate.service';
@@ -37,13 +35,10 @@ import { AdminService } from '../../services/admin.service';
           <div>
             <label class="block text-sm font-medium text-slate-700">{{ 'admin.questions.difficulty' | translate }}</label>
             <select formControlName="difficulty" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-              <option value="EASY" [disabled]="takenDifficulties().has('EASY')">{{ 'admin.questions.easy' | translate }}</option>
-              <option value="MEDIUM" [disabled]="takenDifficulties().has('MEDIUM')">{{ 'admin.questions.medium' | translate }}</option>
-              <option value="HARD" [disabled]="takenDifficulties().has('HARD')">{{ 'admin.questions.hard' | translate }}</option>
+              <option value="EASY">{{ 'admin.questions.easy' | translate }}</option>
+              <option value="MEDIUM">{{ 'admin.questions.medium' | translate }}</option>
+              <option value="HARD">{{ 'admin.questions.hard' | translate }}</option>
             </select>
-            @if (takenDifficulties().has(form.controls.difficulty.value)) {
-              <p class="mt-1 text-xs text-red-600">{{ 'admin.questions.difficultyTaken' | translate }}</p>
-            }
           </div>
         </div>
 
@@ -158,20 +153,12 @@ export class QuestionFormComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
   protected readonly translateService = inject(TranslateService);
 
   protected readonly saving = signal(false);
   protected readonly isEdit = signal(false);
   protected readonly categories = signal<Category[]>([]);
   protected readonly correctOptionIndex = signal(0);
-  // Difficulties the SELECTED category already has a question for (this
-  // question's own id excluded in edit mode) — ticket: admins kept hitting
-  // "A question already exists for this category and difficulty" because
-  // the difficulty dropdown always defaulted to MEDIUM regardless of what
-  // was already taken. Drives both the disabled options below and
-  // autoPickDifficulty's smarter default for new questions.
-  protected readonly takenDifficulties = signal<Set<Difficulty>>(new Set());
 
   protected readonly form = this.fb.nonNullable.group({
     categoryId: ['', Validators.required],
@@ -192,21 +179,6 @@ export class QuestionFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.adminService.getCategories().subscribe((categories) => this.categories.set(categories));
-
-    this.form.controls.categoryId.valueChanges
-      .pipe(
-        startWith(this.form.controls.categoryId.value),
-        distinctUntilChanged(),
-        switchMap((categoryId) => (categoryId ? this.adminService.getQuestions(categoryId) : of([]))),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((questions) => {
-        const taken = new Set(
-          questions.filter((q) => q.id !== this.questionId).map((q) => q.difficulty),
-        );
-        this.takenDifficulties.set(taken);
-        if (!this.isEdit()) this.autoPickDifficulty(taken);
-      });
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
@@ -233,16 +205,6 @@ export class QuestionFormComponent implements OnInit {
       const categoryIdParam = this.route.snapshot.queryParamMap.get('categoryId');
       if (categoryIdParam) this.form.patchValue({ categoryId: categoryIdParam });
     }
-  }
-
-  /** Only called for a new question — leaves an edited question's own difficulty alone. */
-  private autoPickDifficulty(taken: Set<Difficulty>): void {
-    const order: Difficulty[] = ['EASY', 'MEDIUM', 'HARD'];
-    const current = this.form.controls.difficulty.value;
-    if (!taken.has(current)) return;
-
-    const next = order.find((difficulty) => !taken.has(difficulty));
-    if (next) this.form.controls.difficulty.setValue(next);
   }
 
   protected addOption(): void {

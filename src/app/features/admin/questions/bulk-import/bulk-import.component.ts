@@ -21,6 +21,22 @@ type PendingImport = { format: 'json'; questions: unknown[] } | { format: 'csv';
           <input type="file" accept=".csv,.json" class="hidden" (change)="onFileSelected($event)" />
         </label>
         <p class="mt-2 text-xs text-slate-400">{{ 'admin.import.hint' | translate }}</p>
+        <div class="mt-4 flex items-center justify-center gap-4">
+          <button
+            type="button"
+            class="text-xs font-semibold text-primary hover:text-primary-dark"
+            (click)="downloadCsvExample()"
+          >
+            ⭳ {{ 'admin.import.downloadCsvExample' | translate }}
+          </button>
+          <button
+            type="button"
+            class="text-xs font-semibold text-primary hover:text-primary-dark"
+            (click)="downloadJsonExample()"
+          >
+            ⭳ {{ 'admin.import.downloadJsonExample' | translate }}
+          </button>
+        </div>
       </div>
 
       @if (result(); as r) {
@@ -103,6 +119,85 @@ export class BulkImportComponent {
     const result = this.result();
     return !!result && result.mode === 'PREVIEW' && result.summary.invalid === 0;
   });
+
+  /**
+   * A category can hold many questions per difficulty now (a pool, not
+   * exactly one) — these examples show two rows for the SAME categoryId +
+   * difficulty to make that obvious, plus one media row. The categoryId
+   * itself is a placeholder: real ids only exist per-deployment (visible in
+   * the categories admin page's URL/API), so there's nothing real to embed
+   * here — the hint text below the upload button says as much.
+   */
+  private readonly examplePlaceholderCategoryId = 'REPLACE_WITH_A_REAL_CATEGORY_ID';
+
+  private readonly exampleRows: Record<string, unknown>[] = [
+    {
+      categoryId: this.examplePlaceholderCategoryId,
+      difficulty: 'EASY',
+      text: 'ما هي عاصمة مصر؟',
+      options: ['القاهرة', 'الإسكندرية', 'الجيزة', 'الأقصر'],
+      correctOptionIndex: 0,
+      explanation: 'القاهرة هي عاصمة جمهورية مصر العربية.',
+      mediaType: null,
+      mediaUrl: null,
+    },
+    {
+      categoryId: this.examplePlaceholderCategoryId,
+      difficulty: 'EASY',
+      text: 'ما هي عاصمة السعودية؟',
+      options: ['جدة', 'الرياض', 'مكة', 'الدمام'],
+      correctOptionIndex: 1,
+      explanation: 'الرياض هي عاصمة المملكة العربية السعودية.',
+      mediaType: null,
+      mediaUrl: null,
+    },
+    {
+      categoryId: this.examplePlaceholderCategoryId,
+      difficulty: 'MEDIUM',
+      text: 'من هذا الشخص؟',
+      options: ['الخيار أ', 'الخيار ب', 'الخيار ج', 'الخيار د'],
+      correctOptionIndex: 0,
+      explanation: '',
+      mediaType: 'IMAGE',
+      mediaUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Example.jpg',
+    },
+  ];
+
+  private downloadTextFile(filename: string, contents: string, mimeType: string): void {
+    const blob = new Blob([contents], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  protected downloadCsvExample(): void {
+    const header = 'categoryId,difficulty,text,options,correctOptionIndex,explanation,mediaType,mediaUrl';
+    const lines = this.exampleRows.map((row) => {
+      const options = (row['options'] as string[]).join('|');
+      return [
+        row['categoryId'],
+        row['difficulty'],
+        row['text'],
+        options,
+        row['correctOptionIndex'],
+        row['explanation'] ?? '',
+        row['mediaType'] ?? '',
+        row['mediaUrl'] ?? '',
+      ].join(',');
+    });
+    this.downloadTextFile('questions-example.csv', [header, ...lines].join('\n'), 'text/csv');
+  }
+
+  protected downloadJsonExample(): void {
+    this.downloadTextFile(
+      'questions-example.json',
+      JSON.stringify(this.exampleRows, null, 2),
+      'application/json',
+    );
+  }
 
   protected onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;

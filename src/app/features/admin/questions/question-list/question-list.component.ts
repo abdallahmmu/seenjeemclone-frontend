@@ -34,7 +34,6 @@ import { AdminService } from '../../services/admin.service';
         </a>
       </div>
     </div>
-    <p class="mt-1 text-sm text-slate-400">{{ 'admin.questions.onePerDifficulty' | translate }}</p>
 
     <div class="mt-4 flex flex-wrap gap-3">
       <select
