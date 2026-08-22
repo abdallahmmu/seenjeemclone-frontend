@@ -54,6 +54,6 @@ export class TranslateService {
 
   private readInitialLang(): AppLang {
     const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
-    return stored === 'ar' || stored === 'en' ? stored : 'en';
+    return stored === 'ar' || stored === 'en' ? stored : 'ar';
   }
 }

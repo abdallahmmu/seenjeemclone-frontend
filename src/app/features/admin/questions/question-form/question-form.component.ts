@@ -109,6 +109,7 @@ import { AdminService } from '../../services/admin.service';
               <option [ngValue]="null">{{ 'admin.questions.mediaNone' | translate }}</option>
               <option value="AUDIO">{{ 'admin.questions.mediaAudio' | translate }}</option>
               <option value="VIDEO">{{ 'admin.questions.mediaVideo' | translate }}</option>
+              <option value="IMAGE">{{ 'admin.questions.mediaImage' | translate }}</option>
             </select>
           </div>
           @if (form.controls.mediaType.value) {
@@ -120,7 +121,9 @@ import { AdminService } from '../../services/admin.service';
                 [placeholder]="'admin.questions.mediaUrlPlaceholder' | translate"
                 class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
-              <p class="mt-1 text-xs text-slate-500">{{ 'admin.questions.mediaUrlHint' | translate }}</p>
+              <p class="mt-1 text-xs text-slate-500">
+                {{ (form.controls.mediaType.value === 'IMAGE' ? 'admin.questions.mediaImageHint' : 'admin.questions.mediaUrlHint') | translate }}
+              </p>
             </div>
           }
         </div>

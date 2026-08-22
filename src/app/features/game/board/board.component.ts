@@ -281,6 +281,33 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                       }
                     </div>
                   }
+                  @if (question.mediaType === 'IMAGE' && question.mediaUrl) {
+                    <div class="mb-4 flex justify-center">
+                      <div class="relative w-full max-w-sm overflow-hidden rounded-xl shadow-lg">
+                        <img
+                          [src]="question.mediaUrl"
+                          alt=""
+                          class="w-full transition-[filter] duration-500"
+                          [class.blur-2xl]="!imageRevealed()"
+                        />
+                        @if (!imageRevealed()) {
+                          <button
+                            type="button"
+                            class="absolute inset-0 flex items-center justify-center bg-slate-900/30 text-sm font-bold text-white transition hover:bg-slate-900/40"
+                            (click)="revealImage()"
+                          >
+                            <span class="inline-flex items-center gap-2 rounded-full bg-linear-to-l from-primary to-secondary px-5 py-2.5 shadow-lg">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke-linecap="round" stroke-linejoin="round" />
+                                <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round" />
+                              </svg>
+                              {{ 'game.board.revealImage' | translate }}
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
                   <h2 class="text-xl leading-snug font-black text-slate-900">{{ question.text }}</h2>
                 </div>
 
@@ -369,6 +396,9 @@ export class BoardComponent implements OnInit, OnDestroy {
   // screen rather than something that needs server-side anti-cheat.
   protected readonly videoStarted = signal(false);
   protected readonly videoEnded = signal(false);
+  // Same client-side-only reasoning as video — clicking reveal removes the
+  // blur for the rest of this view; a refresh brings it back blurred.
+  protected readonly imageRevealed = signal(false);
 
   protected readonly holeInvokedForTile = signal(false);
   protected readonly trapInvokedForTile = signal(false);
@@ -506,6 +536,7 @@ export class BoardComponent implements OnInit, OnDestroy {
     this.doubleAnswerInvokedForTile.set(tile.doubleAnswerInvoked);
     this.videoStarted.set(false);
     this.videoEnded.set(false);
+    this.imageRevealed.set(false);
   }
 
   protected startVideo(): void {
@@ -514,6 +545,10 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   protected onVideoEnded(): void {
     this.videoEnded.set(true);
+  }
+
+  protected revealImage(): void {
+    this.imageRevealed.set(true);
   }
 
   protected safeUrl(url: string): SafeResourceUrl {

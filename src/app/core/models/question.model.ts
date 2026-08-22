@@ -2,7 +2,7 @@
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
 /** An optional clip alongside the question text. Never both set to different truthiness — see mediaUrl. */
-export type QuestionMediaType = 'AUDIO' | 'VIDEO';
+export type QuestionMediaType = 'AUDIO' | 'VIDEO' | 'IMAGE';
 
 export interface Question {
   id: string;

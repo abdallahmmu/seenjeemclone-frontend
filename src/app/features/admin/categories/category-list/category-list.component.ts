@@ -21,18 +21,32 @@ import { AdminService } from '../../services/admin.service';
         + {{ 'admin.categories.add' | translate }}
       </a>
     </div>
-    <p class="mt-1 text-sm text-slate-400">{{ 'admin.categories.reorderHint' | translate }}</p>
+    <p class="mt-1 text-sm text-slate-400">
+      {{ (searchQuery().trim() ? 'admin.categories.searchReorderHint' : 'admin.categories.reorderHint') | translate }}
+    </p>
+
+    <div class="mt-4">
+      <input
+        type="search"
+        [placeholder]="'admin.categories.searchPlaceholder' | translate"
+        class="w-full max-w-sm rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        [value]="searchQuery()"
+        (input)="onSearchChange($any($event.target).value)"
+      />
+    </div>
 
     <div class="mt-4">
       <app-data-table
         [columns]="columns()"
-        [rows]="categories()"
+        [rows]="pagedCategories()"
         [loading]="loading()"
-        [total]="categories().length"
-        [pageSize]="1000"
-        [reorderable]="true"
+        [total]="filteredCategories().length"
+        [page]="page()"
+        [pageSize]="PAGE_SIZE"
+        [reorderable]="!searchQuery().trim()"
         [trackBy]="trackById"
         (reorder)="onReorder($event)"
+        (pageChange)="page.set($event)"
       >
         <ng-template #rowActions let-row>
           <div class="flex justify-end gap-3">
@@ -72,11 +86,31 @@ export class CategoryListComponent {
   private readonly toastService = inject(ToastService);
   protected readonly translateService = inject(TranslateService);
 
+  protected readonly PAGE_SIZE = 10;
+
   protected readonly loading = signal(true);
   protected readonly categories = signal<Category[]>([]);
   protected readonly groups = signal<CategoryGroup[]>([]);
   protected readonly pendingDelete = signal<Category | null>(null);
   protected readonly trackById = (row: Category) => row.id;
+  protected readonly searchQuery = signal('');
+  protected readonly page = signal(1);
+
+  // Search matches either language regardless of the current UI language —
+  // an admin scanning a bilingual list shouldn't have to switch languages
+  // to find a category by whichever name they remember it by.
+  protected readonly filteredCategories = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+    if (!query) return this.categories();
+    return this.categories().filter(
+      (c) => c.nameEn.toLowerCase().includes(query) || c.nameAr.toLowerCase().includes(query),
+    );
+  });
+
+  protected readonly pagedCategories = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.filteredCategories().slice(start, start + this.PAGE_SIZE);
+  });
 
   protected readonly columns = computed<DataTableColumn<Category>[]>(() => [
     { key: 'name', labelKey: 'admin.categories.name', cell: (c) => this.categoryName(c) },
@@ -132,6 +166,11 @@ export class CategoryListComponent {
         this.toastService.error(apiErrorMessage(err, 'Could not delete the category.'));
       },
     });
+  }
+
+  protected onSearchChange(value: string): void {
+    this.searchQuery.set(value);
+    this.page.set(1);
   }
 
   protected onReorder(event: { previousIndex: number; currentIndex: number }): void {
