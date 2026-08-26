@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { TranslateService } from '../../core/services/translate.service';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { UserMenuComponent } from '../../shared/components/user-menu/user-menu.component';
 
 interface AdminNavItem {
   path: string;
@@ -24,7 +25,7 @@ const NAV_ITEMS: AdminNavItem[] = [
 
 @Component({
   selector: 'app-admin-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe, UserMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex min-h-screen bg-slate-100">
@@ -60,9 +61,7 @@ const NAV_ITEMS: AdminNavItem[] = [
 
       <div class="flex min-w-0 flex-1 flex-col">
         <header class="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
-          <span class="text-sm font-medium text-slate-500">
-            {{ authService.currentUser()?.email }} · {{ authService.currentUser()?.role }}
-          </span>
+          <span class="text-xs font-medium text-slate-400">{{ authService.currentUser()?.role }}</span>
           <div class="flex items-center gap-3">
             <button
               type="button"
@@ -71,13 +70,7 @@ const NAV_ITEMS: AdminNavItem[] = [
             >
               {{ translateService.lang() === 'en' ? 'AR' : 'EN' }}
             </button>
-            <button
-              type="button"
-              class="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
-              (click)="logout()"
-            >
-              {{ 'nav.logout' | translate }}
-            </button>
+            <app-user-menu />
           </div>
         </header>
         <main class="flex-1 overflow-y-auto p-4 sm:p-6">
@@ -90,13 +83,8 @@ const NAV_ITEMS: AdminNavItem[] = [
 export class AdminLayoutComponent {
   protected readonly authService = inject(AuthService);
   protected readonly translateService = inject(TranslateService);
-  private readonly router = inject(Router);
 
   protected readonly visibleItems = computed(() =>
     NAV_ITEMS.filter((item) => !item.superAdminOnly || this.authService.isSuperAdmin()),
   );
-
-  protected logout(): void {
-    this.authService.logout().subscribe(() => this.router.navigateByUrl('/'));
-  }
 }

@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { TranslateService } from '../../core/services/translate.service';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { UserMenuComponent } from '../../shared/components/user-menu/user-menu.component';
 
 @Component({
   selector: 'app-public-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe, UserMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex min-h-screen flex-col bg-slate-50">
@@ -39,14 +40,7 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
             </button>
 
             @if (authService.isAuthenticated()) {
-              <span class="hidden text-sm text-slate-600 sm:inline">{{ authService.currentUser()?.email }}</span>
-              <button
-                type="button"
-                class="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
-                (click)="logout()"
-              >
-                {{ 'nav.logout' | translate }}
-              </button>
+              <app-user-menu />
             } @else {
               <a routerLink="/login" class="rounded-md px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100">{{
                 'nav.login' | translate
@@ -75,11 +69,6 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 export class PublicLayoutComponent {
   protected readonly authService = inject(AuthService);
   protected readonly translateService = inject(TranslateService);
-  private readonly router = inject(Router);
 
   protected readonly year = new Date().getFullYear();
-
-  protected logout(): void {
-    this.authService.logout().subscribe(() => this.router.navigateByUrl('/'));
-  }
 }

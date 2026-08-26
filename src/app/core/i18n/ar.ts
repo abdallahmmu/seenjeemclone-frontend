@@ -61,6 +61,11 @@ export const ar = {
     register: {
       title: 'أنشئ حسابك',
       subtitle: 'انضم وابدأ بالإجابة',
+      handle: 'المعرّف',
+      handleInvalid: '٣ إلى ٢٠ حرفاً: أحرف إنجليزية صغيرة وأرقام وشرطة سفلية فقط.',
+      handleChecking: 'جارٍ التحقق من التوفر…',
+      handleTaken: 'هذا المعرّف مُستخدم بالفعل.',
+      handleAvailable: 'المعرّف متاح.',
       email: 'البريد الإلكتروني',
       password: 'كلمة المرور',
       confirmPassword: 'تأكيد كلمة المرور',
@@ -82,6 +87,14 @@ export const ar = {
       goHome: 'الذهاب للصفحة الرئيسية',
     },
     backToLogin: 'العودة لتسجيل الدخول',
+  },
+  profile: {
+    title: 'إعدادات الحساب',
+    subtitle: 'إدارة معرّفك وصورتك ونبذتك ورقم جوالك',
+    changeAvatar: 'تغيير الصورة',
+    handle: 'المعرّف',
+    bio: 'نبذة',
+    mobile: 'رقم الجوال',
   },
   home: {
     hero: {

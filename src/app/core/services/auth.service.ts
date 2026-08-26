@@ -7,10 +7,12 @@ import {
   AcceptInviteRequest,
   AuthResponse,
   GoogleLoginRequest,
+  HandleAvailabilityResponse,
   LoginRequest,
   MeResponse,
   RefreshResponse,
   RegisterRequest,
+  UpdateProfileRequest,
   User,
   VerifyEmailResponse,
 } from '../models/user.model';
@@ -94,6 +96,33 @@ export class AuthService {
   /** Re-sends the verification email for the currently logged-in user. */
   resendVerificationEmail(): Observable<void> {
     return this.http.post<void>(`${environment.apiUrl}/auth/resend-verification`, {});
+  }
+
+  /** Updates the caller's own profile fields and refreshes `currentUser` on success. */
+  updateProfile(request: UpdateProfileRequest): Observable<User> {
+    return this.http.patch<ApiEnvelope<{ user: User }>>(`${environment.apiUrl}/profile`, request).pipe(
+      map((res) => res.data.user),
+      tap((user) => this.currentUserSignal.set(user)),
+    );
+  }
+
+  /** Uploads a new avatar for the caller's own account and refreshes `currentUser` on success. */
+  uploadAvatar(file: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return this.http.post<ApiEnvelope<{ user: User }>>(`${environment.apiUrl}/profile/avatar`, formData).pipe(
+      map((res) => res.data.user),
+      tap((user) => this.currentUserSignal.set(user)),
+    );
+  }
+
+  /** Live handle-uniqueness check for the register/profile-settings forms. */
+  checkHandleAvailability(handle: string): Observable<boolean> {
+    return this.http
+      .get<ApiEnvelope<HandleAvailabilityResponse>>(`${environment.apiUrl}/profile/handle-availability`, {
+        params: { handle },
+      })
+      .pipe(map((res) => res.data.available));
   }
 
   logout(): Observable<void> {

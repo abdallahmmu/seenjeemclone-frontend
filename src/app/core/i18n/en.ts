@@ -61,6 +61,11 @@ export const en = {
     register: {
       title: 'Create your account',
       subtitle: 'Join and start answering',
+      handle: 'Handle',
+      handleInvalid: '3–20 characters: lowercase letters, numbers, and underscores.',
+      handleChecking: 'Checking availability…',
+      handleTaken: 'This handle is already taken.',
+      handleAvailable: 'Handle available.',
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm password',
@@ -82,6 +87,14 @@ export const en = {
       goHome: 'Go to homepage',
     },
     backToLogin: 'Back to login',
+  },
+  profile: {
+    title: 'Profile settings',
+    subtitle: 'Manage your handle, avatar, bio, and mobile number',
+    changeAvatar: 'Change avatar',
+    handle: 'Handle',
+    bio: 'Bio',
+    mobile: 'Mobile number',
   },
   home: {
     hero: {
