@@ -6,7 +6,12 @@ import { TranslateService } from '../../../core/services/translate.service';
 // <script src="https://accounts.google.com/gsi/client"> tag in index.html,
 // not an npm package, so there's no real type definition to import.
 interface GoogleAccountsId {
-  initialize(config: { client_id: string; callback: (response: { credential: string }) => void }): void;
+  initialize(config: {
+    client_id: string;
+    callback: (response: { credential: string }) => void;
+    use_fedcm_for_prompt?: boolean;
+    use_fedcm_for_button?: boolean;
+  }): void;
   renderButton(
     parent: HTMLElement,
     options: { type: 'standard'; theme: 'outline'; size: 'large'; width: number; text: 'signin_with' | 'signup_with'; locale: string },
@@ -65,6 +70,13 @@ export class GoogleSignInButtonComponent implements AfterViewInit {
     g.accounts.id.initialize({
       client_id: clientId,
       callback: (response) => this.credential.emit(response.credential),
+      // Without FedCM, a browser/extension blocking third-party cookies to
+      // accounts.google.com makes GSI silently fall back to a legacy popup
+      // OAuth flow — and that popup then gets blocked too, since it's opened
+      // from inside a cross-origin iframe's postMessage handler rather than
+      // a direct click. FedCM avoids third-party cookies and popups entirely.
+      use_fedcm_for_prompt: true,
+      use_fedcm_for_button: true,
     });
     g.accounts.id.renderButton(this.container().nativeElement, {
       type: 'standard',
