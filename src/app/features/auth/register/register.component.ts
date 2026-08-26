@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { GoogleSignInButtonComponent } from '../../../shared/components/google-sign-in-button/google-sign-in-button.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -14,7 +15,7 @@ import {
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, LoadingSpinnerComponent],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, LoadingSpinnerComponent, GoogleSignInButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12">
@@ -96,6 +97,16 @@ import {
             </button>
           </form>
 
+          <div class="mt-6 flex items-center gap-3 text-xs text-slate-400">
+            <span class="h-px flex-1 bg-slate-200"></span>
+            {{ 'common.or' | translate }}
+            <span class="h-px flex-1 bg-slate-200"></span>
+          </div>
+
+          <div class="mt-4 flex justify-center">
+            <app-google-sign-in-button text="signup_with" (credential)="onGoogleCredential($event)" />
+          </div>
+
           <p class="mt-6 text-center text-sm text-slate-500">
             {{ 'auth.register.haveAccount' | translate }}
             <a routerLink="/login" class="font-medium text-primary hover:underline">{{
@@ -141,6 +152,19 @@ export class RegisterComponent {
       error: (err: unknown) => {
         this.submitting.set(false);
         this.toastService.error(apiErrorMessage(err, 'Could not create your account.'));
+      },
+    });
+  }
+
+  protected onGoogleCredential(idToken: string): void {
+    if (this.submitting()) return;
+
+    this.submitting.set(true);
+    this.authService.loginWithGoogle({ idToken }).subscribe({
+      next: () => this.router.navigateByUrl('/'),
+      error: (err: unknown) => {
+        this.submitting.set(false);
+        this.toastService.error(apiErrorMessage(err, 'Could not sign in with Google.'));
       },
     });
   }

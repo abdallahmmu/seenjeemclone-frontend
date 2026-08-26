@@ -1,11 +1,13 @@
 export type UserRole = 'PLAYER' | 'ADMIN' | 'SUPER_ADMIN';
 
-/** The backend never has a display name — only id/email/role/isActive. */
+/** The backend never has a display name — only id/email/role/isActive/emailVerified. */
 export interface User {
   id: string;
   email: string;
   role: UserRole;
   isActive: boolean;
+  /** True immediately for a Google sign-in; false for a fresh /auth/register account until the emailed link is clicked. */
+  emailVerified: boolean;
 }
 
 export interface AuthResponse {
@@ -36,4 +38,17 @@ export interface RegisterRequest {
 export interface AcceptInviteRequest {
   token: string;
   password: string;
+}
+
+export interface GoogleLoginRequest {
+  idToken: string;
+}
+
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+/** POST /auth/verify-email returns the (now-verified) user record — no tokens, this doesn't change login state. */
+export interface VerifyEmailResponse {
+  user: User;
 }

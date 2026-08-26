@@ -6,11 +6,13 @@ import { ApiEnvelope } from '../models/api.model';
 import {
   AcceptInviteRequest,
   AuthResponse,
+  GoogleLoginRequest,
   LoginRequest,
   MeResponse,
   RefreshResponse,
   RegisterRequest,
   User,
+  VerifyEmailResponse,
 } from '../models/user.model';
 import { TokenStorageService } from './token-storage.service';
 
@@ -59,6 +61,39 @@ export class AuthService {
         map((res) => res.data),
         tap((res) => this.setSession(res)),
       );
+  }
+
+  /** Signs in (or creates, or links) an account via a Google Identity Services ID token. Same session shape as login/register. */
+  loginWithGoogle(request: GoogleLoginRequest): Observable<AuthResponse> {
+    return this.http
+      .post<ApiEnvelope<AuthResponse>>(`${environment.apiUrl}/auth/google`, request, { withCredentials: true })
+      .pipe(
+        map((res) => res.data),
+        tap((res) => this.setSession(res)),
+      );
+  }
+
+  /**
+   * Confirms an emailed verification link. Doesn't change login state on
+   * its own (the browser that clicks the link may not be signed in as this
+   * user at all) — if the caller happens to already be `currentUser`, the
+   * emailVerified flag is patched in-place so the UI (e.g. the
+   * start-a-game banner) updates immediately without a full getMe() round trip.
+   */
+  verifyEmail(token: string): Observable<User> {
+    return this.http.post<ApiEnvelope<VerifyEmailResponse>>(`${environment.apiUrl}/auth/verify-email`, { token }).pipe(
+      map((res) => res.data.user),
+      tap((user) => {
+        if (this.currentUserSignal()?.id === user.id) {
+          this.currentUserSignal.set(user);
+        }
+      }),
+    );
+  }
+
+  /** Re-sends the verification email for the currently logged-in user. */
+  resendVerificationEmail(): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/auth/resend-verification`, {});
   }
 
   logout(): Observable<void> {

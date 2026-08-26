@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Category } from '../../../core/models/category.model';
 import { CreateGameSessionRequest, GAME_CATEGORIES_COUNT } from '../../../core/models/game.model';
 import { HelperTool, WIRED_HELPER_TOOL_KEYS, WiredHelperToolKey } from '../../../core/models/helper-tool.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { HelperToolService } from '../../../core/services/helper-tool.service';
 import { TranslateService } from '../../../core/services/translate.service';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
@@ -32,6 +33,28 @@ const CONTROL_NAME_BY_KEY: Record<WiredHelperToolKey, 'hasTrap' | 'hasHole' | 'h
       <p class="animate-fade-in-up mt-1 text-sm text-slate-500" style="animation-delay: 0.05s">
         {{ 'game.setup.subtitle' | translate }}
       </p>
+
+      @if (!isEmailVerified()) {
+        <div
+          class="animate-fade-in-up mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4"
+        >
+          <div class="flex items-center gap-3">
+            <span class="text-xl">✉️</span>
+            <p class="text-sm font-medium text-amber-800">{{ 'game.setup.verifyEmailBanner' | translate }}</p>
+          </div>
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:opacity-50"
+            [disabled]="resendingVerification()"
+            (click)="resendVerification()"
+          >
+            @if (resendingVerification()) {
+              <app-loading-spinner [size]="14" />
+            }
+            {{ 'game.setup.resendVerification' | translate }}
+          </button>
+        </div>
+      }
 
       <form class="mt-8 space-y-8" [formGroup]="form" (ngSubmit)="submit()">
         <div class="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6" style="animation-delay: 0.1s">
@@ -164,6 +187,7 @@ export class SetupComponent implements OnInit {
   private readonly gameService = inject(GameService);
   private readonly gameState = inject(GameStateService);
   private readonly helperToolService = inject(HelperToolService);
+  private readonly authService = inject(AuthService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   protected readonly translateService = inject(TranslateService);
@@ -175,13 +199,22 @@ export class SetupComponent implements OnInit {
   protected readonly categories = signal<Category[]>([]);
   protected readonly selectedCategoryIds = signal<string[]>([]);
   protected readonly starting = signal(false);
+  protected readonly resendingVerification = signal(false);
 
   // Only the tools with real gameplay behavior are selectable here — see
   // CONTROL_NAME_BY_KEY. A future catalog-only entry (no backend mechanic
   // yet) shows up on the landing page but not in this picker.
   protected readonly helperTools = signal<HelperTool[]>([]);
 
-  protected readonly canStart = computed(() => this.selectedCategoryIds().length === this.categoriesCount);
+  protected readonly isEmailVerified = computed(() => this.authService.currentUser()?.emailVerified ?? false);
+
+  // Requires exactly categoriesCount selected AND a verified email — the
+  // backend enforces the same verification gate (requireVerifiedEmail on
+  // POST /game-sessions), this is purely the earlier, friendlier UI
+  // rejection with the banner explaining why the button is disabled.
+  protected readonly canStart = computed(
+    () => this.selectedCategoryIds().length === this.categoriesCount && this.isEmailVerified(),
+  );
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -252,6 +285,22 @@ export class SetupComponent implements OnInit {
 
   protected categoryImage(category: Category): string {
     return categoryImageUrl(category);
+  }
+
+  protected resendVerification(): void {
+    if (this.resendingVerification()) return;
+
+    this.resendingVerification.set(true);
+    this.authService.resendVerificationEmail().subscribe({
+      next: () => {
+        this.resendingVerification.set(false);
+        this.toastService.success(this.translateService.t('game.setup.verificationEmailSent'));
+      },
+      error: (err: unknown) => {
+        this.resendingVerification.set(false);
+        this.toastService.error(apiErrorMessage(err, 'Could not resend the verification email.'));
+      },
+    });
   }
 
   protected submit(): void {
