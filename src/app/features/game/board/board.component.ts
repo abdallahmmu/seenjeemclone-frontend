@@ -304,7 +304,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                           [src]="question.mediaUrl"
                           alt=""
                           class="w-full transition-[filter] duration-500"
-                          [class.blur-2xl]="!imageRevealed()"
+                          [class.blur-xl]="!imageRevealed()"
                         />
                         @if (!imageRevealed()) {
                           <button
@@ -740,10 +740,12 @@ export class BoardComponent implements OnInit, OnDestroy {
   }
 
   private refreshSession(after?: () => void): void {
+    this.loading.set(true)
     this.gameService.getSession(this.sessionId).subscribe({
       next: (session) => {
         this.gameState.setSession(session);
         after?.();
+        this.loading.set(false)
       },
       error: (err: unknown) => this.toastService.error(apiErrorMessage(err, 'Could not refresh the game state.')),
     });
