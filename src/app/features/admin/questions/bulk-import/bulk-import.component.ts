@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { BulkImportResponse } from '../../../../core/models/question.model';
+import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { apiErrorMessage } from '../../../../shared/utils/api-error';
@@ -9,7 +10,7 @@ type PendingImport = { format: 'json'; questions: unknown[] } | { format: 'csv';
 
 @Component({
   selector: 'app-bulk-import',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, LoadingSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-4xl">
@@ -89,10 +90,13 @@ type PendingImport = { format: 'json'; questions: unknown[] } | { format: 'csv';
             }
             <button
               type="button"
-              class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
+              class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
               [disabled]="!canCommit() || importing()"
               (click)="commit()"
             >
+              @if (importing()) {
+                <app-loading-spinner [size]="16" variant="white" />
+              }
               {{ 'admin.import.commit' | translate }}
             </button>
           </div>

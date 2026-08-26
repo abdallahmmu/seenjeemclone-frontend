@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Category } from '../../../core/models/category.model';
-import { CreateGameSessionRequest, MIN_GAME_CATEGORIES } from '../../../core/models/game.model';
+import { CreateGameSessionRequest, GAME_CATEGORIES_COUNT } from '../../../core/models/game.model';
 import { HelperTool, WIRED_HELPER_TOOL_KEYS, WiredHelperToolKey } from '../../../core/models/helper-tool.model';
 import { HelperToolService } from '../../../core/services/helper-tool.service';
 import { TranslateService } from '../../../core/services/translate.service';
@@ -52,12 +52,12 @@ const CONTROL_NAME_BY_KEY: Record<WiredHelperToolKey, 'hasTrap' | 'hasHole' | 'h
             <span
               class="rounded-full px-2.5 py-1 text-xs font-semibold transition-colors"
               [class]="
-                selectedCategoryIds().length >= minCategories
+                selectedCategoryIds().length === categoriesCount
                   ? 'bg-secondary-soft text-secondary-dark'
                   : 'bg-accent-soft text-accent-dark'
               "
             >
-              {{ selectedCategoryIds().length }} / {{ minCategories }}
+              {{ selectedCategoryIds().length }} / {{ categoriesCount }}
             </span>
           </div>
 
@@ -68,13 +68,14 @@ const CONTROL_NAME_BY_KEY: Record<WiredHelperToolKey, 'hasTrap' | 'hasHole' | 'h
               @for (category of categories(); track category.id; let i = $index) {
                 <button
                   type="button"
-                  class="animate-pop-in flex flex-col items-center gap-2 rounded-lg border-2 p-3 text-center text-sm font-medium transition hover:-translate-y-0.5"
+                  class="animate-pop-in flex flex-col items-center gap-2 rounded-lg border-2 p-3 text-center text-sm font-medium transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
                   [style.animation-delay.ms]="i * 40"
                   [class]="
                     isCategorySelected(category.id)
                       ? 'border-primary bg-primary-soft'
                       : 'border-slate-200 bg-white hover:border-secondary'
                   "
+                  [disabled]="!isCategorySelected(category.id) && selectedCategoryIds().length >= categoriesCount"
                   [attr.aria-pressed]="isCategorySelected(category.id)"
                   (click)="toggleCategory(category.id)"
                 >
@@ -83,9 +84,9 @@ const CONTROL_NAME_BY_KEY: Record<WiredHelperToolKey, 'hasTrap' | 'hasHole' | 'h
                 </button>
               }
             </div>
-            @if (selectedCategoryIds().length < minCategories) {
+            @if (selectedCategoryIds().length !== categoriesCount) {
               <p class="mt-3 text-sm text-accent-dark">
-                {{ 'game.setup.selectAtLeastOneCategory' | translate: { count: minCategories } }}
+                {{ 'game.setup.selectExactlyCategories' | translate: { count: categoriesCount } }}
               </p>
             }
           }
@@ -146,8 +147,11 @@ const CONTROL_NAME_BY_KEY: Record<WiredHelperToolKey, 'hasTrap' | 'hasHole' | 'h
           <button
             type="submit"
             [disabled]="starting() || !canStart()"
-            class="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-white shadow-sm shadow-primary/30 transition hover:scale-[1.02] hover:bg-primary-dark disabled:scale-100 disabled:opacity-50"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-white shadow-sm shadow-primary/30 transition hover:scale-[1.02] hover:bg-primary-dark disabled:scale-100 disabled:opacity-50"
           >
+            @if (starting()) {
+              <app-loading-spinner [size]="16" variant="white" />
+            }
             {{ 'game.setup.start' | translate }}
           </button>
         </div>
@@ -165,7 +169,7 @@ export class SetupComponent implements OnInit {
   protected readonly translateService = inject(TranslateService);
 
   protected readonly teamKeys = ['teamA', 'teamB'] as const;
-  protected readonly minCategories = MIN_GAME_CATEGORIES;
+  protected readonly categoriesCount = GAME_CATEGORIES_COUNT;
 
   protected readonly loadingCategories = signal(true);
   protected readonly categories = signal<Category[]>([]);
@@ -177,7 +181,7 @@ export class SetupComponent implements OnInit {
   // yet) shows up on the landing page but not in this picker.
   protected readonly helperTools = signal<HelperTool[]>([]);
 
-  protected readonly canStart = computed(() => this.selectedCategoryIds().length >= this.minCategories);
+  protected readonly canStart = computed(() => this.selectedCategoryIds().length === this.categoriesCount);
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -239,7 +243,11 @@ export class SetupComponent implements OnInit {
   }
 
   protected toggleCategory(id: string): void {
-    this.selectedCategoryIds.update((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+    this.selectedCategoryIds.update((ids) => {
+      if (ids.includes(id)) return ids.filter((x) => x !== id);
+      if (ids.length >= this.categoriesCount) return ids;
+      return [...ids, id];
+    });
   }
 
   protected categoryImage(category: Category): string {

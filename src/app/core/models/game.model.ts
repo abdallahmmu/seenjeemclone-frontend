@@ -114,5 +114,5 @@ export interface GameSessionResults {
 /** Mirrors the backend's POINTS_BY_DIFFICULTY — point values live in app code, not the schema. */
 export const POINTS_BY_DIFFICULTY: Record<Difficulty, number> = { EASY: 200, MEDIUM: 400, HARD: 600 };
 
-/** The board requires at least this many category packs (2 rows x 3+ columns). */
-export const MIN_GAME_CATEGORIES = 6;
+/** The board requires exactly this many category packs (2 rows x 3 columns) — not a minimum. */
+export const GAME_CATEGORIES_COUNT = 6;

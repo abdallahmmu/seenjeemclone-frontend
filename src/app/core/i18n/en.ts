@@ -30,6 +30,13 @@ export const en = {
     invalidEmail: 'Enter a valid email address.',
     passwordTooShort: 'Password must be at least 8 characters.',
     passwordMismatch: 'Passwords do not match.',
+    passwordRequirements: {
+      minLength: 'At least 8 characters',
+      lowercase: 'A lowercase letter',
+      uppercase: 'An uppercase letter',
+      number: 'A number',
+      special: 'A special character',
+    },
   },
   nav: {
     home: 'Home',
@@ -126,7 +133,7 @@ export const en = {
       subtitle: 'Name the game, pick your category packs, and build two teams',
       name: 'Game name',
       categories: 'Category packs',
-      selectAtLeastOneCategory: 'Select at least {{count}} category packs',
+      selectExactlyCategories: 'Select exactly {{count}} category packs',
       team: 'Team',
       teamName: 'Team name',
       helperTools: 'Helper tools',

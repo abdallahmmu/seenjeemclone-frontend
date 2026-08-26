@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ContactService } from '../../core/services/contact.service';
 import { HelperToolService } from '../../core/services/helper-tool.service';
 import { TranslateService } from '../../core/services/translate.service';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 import { ToastService } from '../../shared/services/toast.service';
 import { apiErrorMessage } from '../../shared/utils/api-error';
@@ -28,7 +29,7 @@ const FAQ_COUNT = 5;
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, TranslatePipe, ReactiveFormsModule],
+  imports: [RouterLink, TranslatePipe, ReactiveFormsModule, LoadingSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="relative overflow-hidden">
@@ -255,8 +256,11 @@ const FAQ_COUNT = 5;
             <button
               type="submit"
               [disabled]="sendingContact()"
-              class="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-white shadow-sm shadow-primary/30 transition hover:scale-[1.02] hover:bg-primary-dark disabled:scale-100 disabled:opacity-50"
+              class="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-white shadow-sm shadow-primary/30 transition hover:scale-[1.02] hover:bg-primary-dark disabled:scale-100 disabled:opacity-50"
             >
+              @if (sendingContact()) {
+                <app-loading-spinner [size]="16" variant="white" />
+              }
               {{ 'home.contact.send' | translate }}
             </button>
           </div>

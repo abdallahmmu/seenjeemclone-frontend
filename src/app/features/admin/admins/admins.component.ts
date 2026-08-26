@@ -5,6 +5,7 @@ import { UserRole } from '../../../core/models/user.model';
 import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { DataTableComponent } from '../../../shared/components/data-table/data-table.component';
 import { DataTableColumn } from '../../../shared/components/data-table/data-table.models';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
 import { apiErrorMessage } from '../../../shared/utils/api-error';
@@ -12,7 +13,7 @@ import { SuperAdminService } from '../services/super-admin.service';
 
 @Component({
   selector: 'app-admins',
-  imports: [DataTableComponent, ConfirmModalComponent, ReactiveFormsModule, TranslatePipe],
+  imports: [DataTableComponent, ConfirmModalComponent, ReactiveFormsModule, TranslatePipe, LoadingSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex items-center justify-between">
@@ -84,8 +85,11 @@ import { SuperAdminService } from '../services/super-admin.service';
               <button
                 type="submit"
                 [disabled]="inviting()"
-                class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
+                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
               >
+                @if (inviting()) {
+                  <app-loading-spinner [size]="16" variant="white" />
+                }
                 {{ 'admin.admins.invite' | translate }}
               </button>
             </div>

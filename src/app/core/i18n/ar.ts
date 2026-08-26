@@ -30,6 +30,13 @@ export const ar = {
     invalidEmail: 'أدخل بريداً إلكترونياً صحيحاً.',
     passwordTooShort: 'يجب ألا تقل كلمة المرور عن 8 أحرف.',
     passwordMismatch: 'كلمتا المرور غير متطابقتين.',
+    passwordRequirements: {
+      minLength: '8 أحرف على الأقل',
+      lowercase: 'حرف صغير',
+      uppercase: 'حرف كبير',
+      number: 'رقم',
+      special: 'رمز خاص',
+    },
   },
   nav: {
     home: 'الرئيسية',
@@ -126,7 +133,7 @@ export const ar = {
       subtitle: 'سمِّ اللعبة، اختر حزم الفئات، وشكِّل فريقين',
       name: 'اسم اللعبة',
       categories: 'حزم الفئات',
-      selectAtLeastOneCategory: 'اختر {{count}} حزم فئات على الأقل',
+      selectExactlyCategories: 'اختر {{count}} حزم فئات بالضبط',
       team: 'فريق',
       teamName: 'اسم الفريق',
       helperTools: 'وسائل المساعدة',

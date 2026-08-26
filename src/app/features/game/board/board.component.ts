@@ -149,7 +149,11 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                       [disabled]="invokingHole()"
                       (click)="useHole()"
                     >
-                      <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
+                      @if (invokingHole()) {
+                        <app-loading-spinner [size]="16" />
+                      } @else {
+                        <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
+                      }
                       {{ 'game.board.useHole' | translate }}
                     </button>
                   }
@@ -178,10 +182,14 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                     [disabled]="openingQuestion()"
                     (click)="openQuestion()"
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
-                      <rect x="5" y="11" width="14" height="9" rx="2" />
-                      <path d="M8 11V7a4 4 0 0 1 7.5-2" stroke-linecap="round" />
-                    </svg>
+                    @if (openingQuestion()) {
+                      <app-loading-spinner [size]="16" variant="white" />
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                        <rect x="5" y="11" width="14" height="9" rx="2" />
+                        <path d="M8 11V7a4 4 0 0 1 7.5-2" stroke-linecap="round" />
+                      </svg>
+                    }
                     {{ 'game.board.openQuestion' | translate }}
                   </button>
                 </div>
@@ -197,7 +205,11 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                       [disabled]="invokingDoubleAnswer()"
                       (click)="useDoubleAnswer()"
                     >
-                      <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
+                      @if (invokingDoubleAnswer()) {
+                        <app-loading-spinner [size]="16" />
+                      } @else {
+                        <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
+                      }
                       {{ 'game.board.useDoubleAnswer' | translate }}
                     </button>
                   }
@@ -218,7 +230,11 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                       [disabled]="invokingTrap()"
                       (click)="useTrap()"
                     >
-                      <img [src]="toolIcon('trap')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-red-200" />
+                      @if (invokingTrap()) {
+                        <app-loading-spinner [size]="16" />
+                      } @else {
+                        <img [src]="toolIcon('trap')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-red-200" />
+                      }
                       {{ 'game.board.useTrap' | translate }}
                     </button>
                   }
@@ -319,9 +335,13 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                     (click)="revealAnswer()"
                   >
                     {{ 'game.board.next' | translate }}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
-                      <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
+                    @if (revealing()) {
+                      <app-loading-spinner [size]="16" variant="white" />
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                        <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    }
                   </button>
                 </div>
               }
@@ -339,26 +359,35 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                 <div class="mt-2 grid grid-cols-3 gap-2">
                   <button
                     type="button"
-                    class="rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-a transition hover:border-team-a hover:bg-team-a-soft disabled:opacity-50"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-a transition hover:border-team-a hover:bg-team-a-soft disabled:opacity-50"
                     [disabled]="resolving()"
                     (click)="resolve(0)"
                   >
+                    @if (resolving()) {
+                      <app-loading-spinner [size]="14" />
+                    }
                     {{ gameState.session()?.teams?.[0]?.name }} ✓
                   </button>
                   <button
                     type="button"
-                    class="rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-500 transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-500 transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50"
                     [disabled]="resolving()"
                     (click)="resolve(null)"
                   >
+                    @if (resolving()) {
+                      <app-loading-spinner [size]="14" />
+                    }
                     {{ 'game.board.noOneAnswered' | translate }}
                   </button>
                   <button
                     type="button"
-                    class="rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-b transition hover:border-team-b hover:bg-team-b-soft disabled:opacity-50"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-b transition hover:border-team-b hover:bg-team-b-soft disabled:opacity-50"
                     [disabled]="resolving()"
                     (click)="resolve(1)"
                   >
+                    @if (resolving()) {
+                      <app-loading-spinner [size]="14" />
+                    }
                     {{ gameState.session()?.teams?.[1]?.name }} ✓
                   </button>
                 </div>

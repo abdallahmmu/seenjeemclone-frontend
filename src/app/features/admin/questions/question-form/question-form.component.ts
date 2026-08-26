@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Category } from '../../../../core/models/category.model';
 import { Difficulty, QuestionMediaType } from '../../../../core/models/question.model';
 import { TranslateService } from '../../../../core/services/translate.service';
+import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { apiErrorMessage } from '../../../../shared/utils/api-error';
@@ -11,7 +12,7 @@ import { AdminService } from '../../services/admin.service';
 
 @Component({
   selector: 'app-question-form',
-  imports: [ReactiveFormsModule, TranslatePipe, RouterLink],
+  imports: [ReactiveFormsModule, TranslatePipe, RouterLink, LoadingSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-3xl" dir="rtl">
@@ -138,8 +139,11 @@ import { AdminService } from '../../services/admin.service';
           <button
             type="submit"
             [disabled]="saving()"
-            class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
           >
+            @if (saving()) {
+              <app-loading-spinner [size]="16" variant="white" />
+            }
             {{ 'common.save' | translate }}
           </button>
         </div>

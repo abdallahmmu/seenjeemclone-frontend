@@ -1,20 +1,20 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
 import { apiErrorMessage } from '../../../shared/utils/api-error';
-
-function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
-  const password = control.get('password')?.value;
-  const confirmPassword = control.get('confirmPassword')?.value;
-  return password && confirmPassword && password !== confirmPassword ? { passwordMismatch: true } : null;
-}
+import {
+  passwordRequirements,
+  passwordsMatchValidator,
+  passwordStrengthValidator,
+} from '../../../shared/validators/password.validator';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, LoadingSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12">
@@ -53,8 +53,18 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
                 autocomplete="new-password"
                 class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
-              @if (form.controls.password.invalid && form.controls.password.touched) {
-                <p class="mt-1 text-xs text-red-600">{{ 'common.passwordTooShort' | translate }}</p>
+              @if (form.controls.password.value.length > 0 || form.controls.password.touched) {
+                <ul class="mt-2 space-y-0.5">
+                  @for (requirement of checklist(); track requirement.key) {
+                    <li
+                      class="flex items-center gap-1.5 text-xs"
+                      [class]="requirement.met ? 'text-emerald-600' : 'text-slate-400'"
+                    >
+                      <span>{{ requirement.met ? '✓' : '○' }}</span>
+                      {{ ('common.passwordRequirements.' + requirement.key) | translate }}
+                    </li>
+                  }
+                </ul>
               }
             </div>
 
@@ -77,8 +87,11 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
             <button
               type="submit"
               [disabled]="submitting()"
-              class="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
             >
+              @if (submitting()) {
+                <app-loading-spinner [size]="16" variant="white" />
+              }
               {{ 'auth.register.submit' | translate }}
             </button>
           </form>
@@ -105,11 +118,15 @@ export class RegisterComponent {
   protected readonly form = this.fb.nonNullable.group(
     {
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      password: ['', [Validators.required, passwordStrengthValidator]],
       confirmPassword: ['', [Validators.required]],
     },
     { validators: passwordsMatchValidator },
   );
+
+  protected checklist() {
+    return passwordRequirements(this.form.controls.password.value);
+  }
 
   protected submit(): void {
     if (this.form.invalid || this.submitting()) {
