@@ -7,6 +7,7 @@ import { HelperTool, WiredHelperToolKey } from '../../../core/models/helper-tool
 import { Difficulty } from '../../../core/models/question.model';
 import { HelperToolService } from '../../../core/services/helper-tool.service';
 import { TranslateService } from '../../../core/services/translate.service';
+import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -23,13 +24,23 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
 
 @Component({
   selector: 'app-board',
-  imports: [TranslatePipe, LoadingSpinnerComponent],
+  imports: [TranslatePipe, LoadingSpinnerComponent, ConfirmModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (loading()) {
       <app-loading-spinner [fullPage]="true" [size]="40" />
     } @else if (gameState.session(); as session) {
       <div class="mx-auto max-w-5xl px-4 py-6">
+        <div class="mb-3 flex justify-end">
+          <button
+            type="button"
+            class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:border-red-300 hover:text-red-600"
+            (click)="confirmFinish()"
+          >
+            {{ 'game.board.finishGame' | translate }}
+          </button>
+        </div>
+
         <div
           class="animate-fade-in-up mx-auto max-w-2xl rounded-2xl bg-linear-to-l from-primary via-primary to-secondary p-[2px] shadow-lg shadow-primary/20"
         >
@@ -100,6 +111,16 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
           }
         </div>
       </div>
+
+      <app-confirm-modal
+        [open]="confirmingFinish()"
+        [title]="'game.board.finishGame' | translate"
+        [message]="'game.board.finishGameConfirm' | translate"
+        [danger]="true"
+        [confirmLabel]="'game.board.finishGame' | translate"
+        (confirmed)="finish()"
+        (cancelled)="confirmingFinish.set(false)"
+      />
 
       @if (selectedTile(); as tile) {
         <div class="animate-fade-in fixed inset-0 z-40 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
@@ -438,6 +459,7 @@ export class BoardComponent implements OnInit, OnDestroy {
   protected readonly invokingDoubleAnswer = signal(false);
   protected readonly revealing = signal(false);
   protected readonly resolving = signal(false);
+  protected readonly confirmingFinish = signal(false);
 
   protected readonly elapsedLabel = computed(() => formatElapsed(this.elapsedSeconds()));
 
@@ -682,6 +704,19 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   protected correctOptionText(revealData: RevealTileResponse): string {
     return this.tileQuestion()?.options[revealData.correctOptionIndex] ?? '';
+  }
+
+  protected confirmFinish(): void {
+    this.confirmingFinish.set(true);
+  }
+
+  /** Soft-deletes the session (POST /:id/finish) — an early, deliberate end, distinct from resolve()'s auto-navigate once every tile is answered. */
+  protected finish(): void {
+    this.confirmingFinish.set(false);
+    this.gameService.finishSession(this.sessionId).subscribe({
+      next: () => this.router.navigate(['/play', this.sessionId, 'results']),
+      error: (err: unknown) => this.toastService.error(apiErrorMessage(err, 'Could not finish the game.')),
+    });
   }
 
   protected resolve(awardedTeamIndex: number | null): void {

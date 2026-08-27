@@ -20,6 +20,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
       },
       {
+        path: 'history',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/game-history/game-history.routes').then((m) => m.GAME_HISTORY_ROUTES),
+      },
+      {
         path: '',
         loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
       },

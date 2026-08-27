@@ -47,6 +47,7 @@ export const ar = {
     register: 'إنشاء حساب',
     logout: 'تسجيل الخروج',
     myAccount: 'حسابي',
+    gameHistory: 'سجل الألعاب',
   },
   auth: {
     login: {
@@ -95,6 +96,13 @@ export const ar = {
     handle: 'المعرّف',
     bio: 'نبذة',
     mobile: 'رقم الجوال',
+  },
+  history: {
+    title: 'سجل الألعاب',
+    subtitle: 'كل الألعاب التي بدأتها — استكمل لعبة نشطة أو راجع كيف انتهت.',
+    empty: 'لا توجد ألعاب بعد — ابدأ واحدة من صفحة اللعب.',
+    active: 'نشطة',
+    finished: 'منتهية',
   },
   home: {
     hero: {
@@ -162,8 +170,12 @@ export const ar = {
       verifyEmailBanner: 'يرجى تأكيد بريدك الإلكتروني قبل بدء اللعبة.',
       resendVerification: 'إعادة إرسال البريد',
       verificationEmailSent: 'تم إرسال بريد التأكيد — تحقق من صندوق الوارد.',
+      activeGameBanner: 'لديك لعبة قيد التقدم: {{name}}',
+      resumeGame: 'استكمال اللعبة',
     },
     board: {
+      finishGame: 'إنهاء اللعبة',
+      finishGameConfirm: 'سينهي هذا اللعبة للجميع وينقلها إلى سجلّك. لا يمكن التراجع عن هذا الإجراء.',
       pointsSuffix: 'نقطة',
       turn: 'الدور',
       turnOf: 'دور {{team}}',
@@ -226,6 +238,7 @@ export const ar = {
       nameEn: 'الاسم (إنجليزي)',
       nameAr: 'الاسم (عربي)',
       order: 'الترتيب',
+      deleteConfirm: 'سيؤدي هذا أيضاً إلى حذف كل فئة (وأسئلتها) داخل هذه المجموعة. أي فئة استُخدمت فعلياً في جلسة لعب ستمنع الحذف بالكامل.',
     },
     categories: {
       title: 'الفئات',
@@ -233,6 +246,7 @@ export const ar = {
       edit: 'تعديل الفئة',
       name: 'الاسم',
       group: 'مجموعة الفئة',
+      deleteConfirm: 'سيؤدي هذا أيضاً إلى حذف كل سؤال في هذه الفئة. إذا استُخدمت في جلسة لعب، سيُمنع الحذف.',
       reorderHint: 'اسحب الصفوف لإعادة الترتيب',
       searchReorderHint: 'امسح البحث لسحب الفئات وإعادة ترتيبها.',
       searchPlaceholder: 'ابحث بالاسم (عربي أو إنجليزي)…',

@@ -47,6 +47,7 @@ export const en = {
     register: 'Sign up',
     logout: 'Log out',
     myAccount: 'My account',
+    gameHistory: 'Game history',
   },
   auth: {
     login: {
@@ -95,6 +96,13 @@ export const en = {
     handle: 'Handle',
     bio: 'Bio',
     mobile: 'Mobile number',
+  },
+  history: {
+    title: 'Game history',
+    subtitle: 'Every game you\'ve started — resume an active one or look back at how it went.',
+    empty: 'No games yet — start one from Play.',
+    active: 'Active',
+    finished: 'Finished',
   },
   home: {
     hero: {
@@ -162,8 +170,12 @@ export const en = {
       verifyEmailBanner: 'Please verify your email address before starting a game.',
       resendVerification: 'Resend email',
       verificationEmailSent: 'Verification email sent — check your inbox.',
+      activeGameBanner: 'You have a game in progress: {{name}}',
+      resumeGame: 'Resume game',
     },
     board: {
+      finishGame: 'Finish game',
+      finishGameConfirm: 'This ends the game for everyone and moves it to your history. This can\'t be undone.',
       pointsSuffix: 'pts',
       turn: 'Turn',
       turnOf: "{{team}}'s turn",
@@ -226,6 +238,7 @@ export const en = {
       nameEn: 'Name (English)',
       nameAr: 'Name (Arabic)',
       order: 'Order',
+      deleteConfirm: 'This also deletes every category (and question) in this group. Any category actually used in a game session will block the whole deletion.',
     },
     categories: {
       title: 'Categories',
@@ -233,6 +246,7 @@ export const en = {
       edit: 'Edit category',
       name: 'Name',
       group: 'Category group',
+      deleteConfirm: 'This also deletes every question in this category. If it\'s been used in a game session, deletion will be blocked.',
       reorderHint: 'Drag rows to reorder',
       searchReorderHint: 'Clear the search to drag-reorder categories.',
       searchPlaceholder: 'Search by name (Arabic or English)…',

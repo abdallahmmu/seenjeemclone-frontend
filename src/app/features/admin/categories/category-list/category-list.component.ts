@@ -73,7 +73,7 @@ import { AdminService } from '../../services/admin.service';
     <app-confirm-modal
       [open]="!!pendingDelete()"
       [title]="'admin.categories.edit' | translate"
-      [message]="'common.confirm' | translate"
+      [message]="'admin.categories.deleteConfirm' | translate"
       [danger]="true"
       [confirmLabel]="'common.delete' | translate"
       (confirmed)="deleteConfirmed()"

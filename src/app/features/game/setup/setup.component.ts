@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Category } from '../../../core/models/category.model';
-import { CreateGameSessionRequest, GAME_CATEGORIES_COUNT } from '../../../core/models/game.model';
+import { CreateGameSessionRequest, GAME_CATEGORIES_COUNT, GameSessionSummary } from '../../../core/models/game.model';
 import { HelperTool, WIRED_HELPER_TOOL_KEYS, WiredHelperToolKey } from '../../../core/models/helper-tool.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { HelperToolService } from '../../../core/services/helper-tool.service';
@@ -25,7 +25,7 @@ const CONTROL_NAME_BY_KEY: Record<WiredHelperToolKey, 'hasTrap' | 'hasHole' | 'h
 
 @Component({
   selector: 'app-game-setup',
-  imports: [ReactiveFormsModule, TranslatePipe, LoadingSpinnerComponent],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, LoadingSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-3xl px-4 py-10">
@@ -53,6 +53,25 @@ const CONTROL_NAME_BY_KEY: Record<WiredHelperToolKey, 'hasTrap' | 'hasHole' | 'h
             }
             {{ 'game.setup.resendVerification' | translate }}
           </button>
+        </div>
+      }
+
+      @if (activeSession(); as session) {
+        <div
+          class="animate-fade-in-up mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-soft p-4"
+        >
+          <div class="flex items-center gap-3">
+            <span class="text-xl">🎮</span>
+            <p class="text-sm font-medium text-primary-dark">
+              {{ 'game.setup.activeGameBanner' | translate: { name: session.name } }}
+            </p>
+          </div>
+          <a
+            [routerLink]="['/play', session.id]"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-primary-dark"
+          >
+            {{ 'game.setup.resumeGame' | translate }}
+          </a>
         </div>
       }
 
@@ -200,6 +219,7 @@ export class SetupComponent implements OnInit {
   protected readonly selectedCategoryIds = signal<string[]>([]);
   protected readonly starting = signal(false);
   protected readonly resendingVerification = signal(false);
+  protected readonly activeSession = signal<GameSessionSummary | null>(null);
 
   // Only the tools with real gameplay behavior are selectable here — see
   // CONTROL_NAME_BY_KEY. A future catalog-only entry (no backend mechanic
@@ -243,6 +263,16 @@ export class SetupComponent implements OnInit {
         ),
       error: () => {
         // Best-effort only — teams simply won't see lifeline opt-ins if this fails.
+      },
+    });
+
+    // A player has at most one active session at a time (the backend
+    // auto-finishes an older one the moment they start a new one) — find it
+    // in their history so the resume banner can point at it directly.
+    this.gameService.getHistory().subscribe({
+      next: (sessions) => this.activeSession.set(sessions.find((s) => s.finishedAt === null) ?? null),
+      error: () => {
+        // Best-effort only — the resume banner just won't show if this fails.
       },
     });
   }

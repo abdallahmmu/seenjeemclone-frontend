@@ -8,6 +8,7 @@ import {
   CreateGameSessionRequest,
   GameSession,
   GameSessionResults,
+  GameSessionSummary,
   ResolveTileRequest,
   ResolveTileResponse,
   RevealTileResponse,
@@ -37,6 +38,20 @@ export class GameService {
 
   getSession(id: string): Observable<GameSession> {
     return this.http.get<ApiEnvelope<GameSession>>(`${this.base}/game-sessions/${id}`).pipe(map((res) => res.data));
+  }
+
+  /** The caller's own game history, newest first — team scores but no board/question content. */
+  getHistory(): Observable<GameSessionSummary[]> {
+    return this.http
+      .get<ApiEnvelope<GameSessionSummary[]>>(`${this.base}/game-sessions/history`)
+      .pipe(map((res) => res.data));
+  }
+
+  /** Soft-deletes the session (marks it finished) — it stays in history, just no longer resumable. Idempotent. */
+  finishSession(id: string): Observable<GameSession> {
+    return this.http
+      .post<ApiEnvelope<GameSession>>(`${this.base}/game-sessions/${id}/finish`, {})
+      .pipe(map((res) => res.data));
   }
 
   getResults(id: string): Observable<GameSessionResults> {

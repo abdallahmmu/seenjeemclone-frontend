@@ -49,8 +49,19 @@ export interface GameSession {
   createdBy: string;
   currentTeamIndex: number;
   createdAt: string;
+  /** Null while active — soft-deleted (never a hard row delete) by POST /game-sessions/:id/finish, or automatically when the player starts another session. */
+  finishedAt: string | null;
   teams: Team[];
   tiles: Tile[];
+}
+
+/** One row in GET /game-sessions/history — a leaner GameSession with team scores but no board/question content. */
+export interface GameSessionSummary {
+  id: string;
+  name: string;
+  createdAt: string;
+  finishedAt: string | null;
+  teams: Pick<Team, 'id' | 'name' | 'index' | 'score'>[];
 }
 
 export interface TeamSetupInput {
