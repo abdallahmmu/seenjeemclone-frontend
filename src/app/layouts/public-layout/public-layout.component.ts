@@ -25,6 +25,7 @@ import { UserMenuComponent } from '../../shared/components/user-menu/user-menu.c
               'nav.home' | translate
             }}</a>
             <a routerLink="/play" class="transition hover:text-primary" routerLinkActive="text-primary">{{ 'nav.play' | translate }}</a>
+            <a routerLink="/shop" class="transition hover:text-primary" routerLinkActive="text-primary">{{ 'nav.shop' | translate }}</a>
             @if (authService.isAdmin()) {
               <a routerLink="/admin" class="transition hover:text-primary" routerLinkActive="text-primary">{{ 'nav.admin' | translate }}</a>
             }

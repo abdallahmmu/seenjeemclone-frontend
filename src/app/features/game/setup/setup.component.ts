@@ -227,13 +227,14 @@ export class SetupComponent implements OnInit {
   protected readonly helperTools = signal<HelperTool[]>([]);
 
   protected readonly isEmailVerified = computed(() => this.authService.currentUser()?.emailVerified ?? false);
+  protected readonly hasCredits = computed(() => (this.authService.currentUser()?.credits ?? 0) > 0);
 
   // Requires exactly categoriesCount selected AND a verified email — the
   // backend enforces the same verification gate (requireVerifiedEmail on
   // POST /game-sessions), this is purely the earlier, friendlier UI
   // rejection with the banner explaining why the button is disabled.
   protected readonly canStart = computed(
-    () => this.selectedCategoryIds().length === this.categoriesCount && this.isEmailVerified(),
+    () => this.selectedCategoryIds().length === this.categoriesCount && this.isEmailVerified() && this.hasCredits(),
   );
 
   protected readonly form = this.fb.nonNullable.group({
@@ -243,6 +244,14 @@ export class SetupComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // No credits — send the player to the shop instead of rendering a setup
+    // form they can't submit (the backend enforces this too, but this is
+    // the earlier, friendlier redirect rather than a failed POST).
+    if (!this.hasCredits()) {
+      this.router.navigateByUrl('/shop');
+      return;
+    }
+
     this.gameService.getCategoriesForSetup().subscribe({
       next: (categories) => {
         this.categories.set(categories);

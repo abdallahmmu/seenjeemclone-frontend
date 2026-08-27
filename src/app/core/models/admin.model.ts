@@ -53,10 +53,12 @@ export interface AppSettings {
   featureFlags: Record<string, boolean>;
   lifelineConfig: { trapEnabled: boolean; holeEnabled: boolean; doubleAnswerEnabled: boolean };
   difficultyWeighting: { easy: number; medium: number; hard: number };
+  /** Credits deducted from a player's balance each time they start a new game session. */
+  gameCreditCost: number;
   updatedAt: string;
   updatedBy: string | null;
 }
 
 export type UpdateSettingsRequest = Partial<
-  Pick<AppSettings, 'featureFlags' | 'lifelineConfig' | 'difficultyWeighting'>
+  Pick<AppSettings, 'featureFlags' | 'lifelineConfig' | 'difficultyWeighting' | 'gameCreditCost'>
 >;

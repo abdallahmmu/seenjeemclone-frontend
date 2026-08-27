@@ -97,6 +97,93 @@ export const ADMIN_ROUTES: Routes = [
     title: 'Edit helper tool',
   },
   {
+    path: 'credit-packages',
+    loadComponent: () =>
+      import('./credit-packages/credit-package-list/credit-package-list.component').then(
+        (m) => m.CreditPackageListComponent,
+      ),
+    title: 'Credit packages',
+  },
+  {
+    path: 'credit-packages/new',
+    loadComponent: () =>
+      import('./credit-packages/credit-package-form/credit-package-form.component').then(
+        (m) => m.CreditPackageFormComponent,
+      ),
+    title: 'New credit package',
+  },
+  {
+    path: 'credit-packages/:id/edit',
+    loadComponent: () =>
+      import('./credit-packages/credit-package-form/credit-package-form.component').then(
+        (m) => m.CreditPackageFormComponent,
+      ),
+    title: 'Edit credit package',
+  },
+  {
+    path: 'payment-methods',
+    loadComponent: () =>
+      import('./payment-methods/payment-method-list/payment-method-list.component').then(
+        (m) => m.PaymentMethodListComponent,
+      ),
+    title: 'Payment methods',
+  },
+  {
+    path: 'payment-methods/new',
+    loadComponent: () =>
+      import('./payment-methods/payment-method-form/payment-method-form.component').then(
+        (m) => m.PaymentMethodFormComponent,
+      ),
+    title: 'New payment method',
+  },
+  {
+    path: 'payment-methods/:id/edit',
+    loadComponent: () =>
+      import('./payment-methods/payment-method-form/payment-method-form.component').then(
+        (m) => m.PaymentMethodFormComponent,
+      ),
+    title: 'Edit payment method',
+  },
+  {
+    path: 'purchase-orders',
+    loadComponent: () =>
+      import('./purchase-orders/purchase-order-review.component').then((m) => m.PurchaseOrderReviewComponent),
+    title: 'Purchase orders',
+  },
+  {
+    path: 'promo-codes',
+    loadComponent: () =>
+      import('./promo-codes/promo-code-list/promo-code-list.component').then((m) => m.PromoCodeListComponent),
+    title: 'Promo codes',
+  },
+  {
+    path: 'promo-codes/new',
+    loadComponent: () =>
+      import('./promo-codes/promo-code-form/promo-code-form.component').then((m) => m.PromoCodeFormComponent),
+    title: 'New promo code',
+  },
+  {
+    path: 'promo-codes/:id/edit',
+    loadComponent: () =>
+      import('./promo-codes/promo-code-form/promo-code-form.component').then((m) => m.PromoCodeFormComponent),
+    title: 'Edit promo code',
+  },
+  {
+    path: 'banners',
+    loadComponent: () => import('./banners/banner-list/banner-list.component').then((m) => m.BannerListComponent),
+    title: 'Banners',
+  },
+  {
+    path: 'banners/new',
+    loadComponent: () => import('./banners/banner-form/banner-form.component').then((m) => m.BannerFormComponent),
+    title: 'New banner',
+  },
+  {
+    path: 'banners/:id/edit',
+    loadComponent: () => import('./banners/banner-form/banner-form.component').then((m) => m.BannerFormComponent),
+    title: 'Edit banner',
+  },
+  {
     path: 'admins',
     canActivate: [superAdminGuard],
     loadComponent: () => import('./admins/admins.component').then((m) => m.AdminsComponent),

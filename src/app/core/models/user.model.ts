@@ -13,6 +13,8 @@ export interface User {
   avatarUrl: string | null;
   bio: string | null;
   mobile: string | null;
+  /** Wallet balance spent on starting a game session — 0 sends the player to /shop instead of a fresh game. */
+  credits: number;
 }
 
 export interface AuthResponse {

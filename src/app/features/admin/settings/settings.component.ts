@@ -73,6 +73,17 @@ interface FeatureFlagRow {
           </div>
 
           <div>
+            <h2 class="text-sm font-semibold text-slate-700">{{ 'admin.settings.gameCreditCost' | translate }}</h2>
+            <p class="mt-1 text-xs text-slate-400">{{ 'admin.settings.gameCreditCostHint' | translate }}</p>
+            <input
+              type="number"
+              min="0"
+              formControlName="gameCreditCost"
+              class="mt-2 w-40 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
             <h2 class="text-sm font-semibold text-slate-700">{{ 'admin.settings.featureFlags' | translate }}</h2>
             <div class="mt-3 space-y-2">
               @for (flag of featureFlags(); track flag.key) {
@@ -152,6 +163,7 @@ export class SettingsComponent implements OnInit {
       medium: [1, [Validators.required, Validators.min(0.01)]],
       hard: [1, [Validators.required, Validators.min(0.01)]],
     }),
+    gameCreditCost: [1, [Validators.required, Validators.min(0)]],
   });
 
   ngOnInit(): void {
@@ -160,6 +172,7 @@ export class SettingsComponent implements OnInit {
         this.form.patchValue({
           lifelineConfig: settings.lifelineConfig,
           difficultyWeighting: settings.difficultyWeighting,
+          gameCreditCost: settings.gameCreditCost,
         });
         this.featureFlags.set(Object.entries(settings.featureFlags).map(([key, value]) => ({ key, value })));
         this.loading.set(false);
@@ -200,6 +213,7 @@ export class SettingsComponent implements OnInit {
       .updateSettings({
         lifelineConfig: value.lifelineConfig,
         difficultyWeighting: value.difficultyWeighting,
+        gameCreditCost: value.gameCreditCost,
         featureFlags,
       })
       .subscribe({

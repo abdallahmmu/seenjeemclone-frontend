@@ -180,6 +180,16 @@ export class AuthService {
     this.clearSession();
   }
 
+  /**
+   * Patches `currentUser` directly from a response that already carries the
+   * fresh user (e.g. redeeming a promo code) — avoids an extra getMe() round
+   * trip for the common case where the mutating endpoint already returns
+   * the updated record.
+   */
+  setCurrentUser(user: User): void {
+    this.currentUserSignal.set(user);
+  }
+
   private setSession(res: AuthResponse): void {
     this.tokenStorage.setAccessToken(res.accessToken);
     this.currentUserSignal.set(res.user);

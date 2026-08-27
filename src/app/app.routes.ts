@@ -25,6 +25,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/game-history/game-history.routes').then((m) => m.GAME_HISTORY_ROUTES),
       },
       {
+        path: 'shop',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/shop/shop.routes').then((m) => m.SHOP_ROUTES),
+      },
+      {
         path: '',
         loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
       },
