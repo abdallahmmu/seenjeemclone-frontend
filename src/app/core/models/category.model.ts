@@ -27,6 +27,8 @@ export interface Category {
   order: number;
   active: boolean;
   createdAt: string;
+  /** Omitted by create/update (which don't re-fetch the count) — present on list/get. */
+  questionCount?: number;
 }
 
 export interface CreateCategoryRequest {

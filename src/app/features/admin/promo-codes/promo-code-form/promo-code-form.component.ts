@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Observable, map } from 'rxjs';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
+import { UserSearchOption, UserSearchSelectComponent } from '../../../../shared/components/user-search-select/user-search-select.component';
 import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { apiErrorMessage } from '../../../../shared/utils/api-error';
@@ -9,7 +11,7 @@ import { AdminService } from '../../services/admin.service';
 
 @Component({
   selector: 'app-promo-code-form',
-  imports: [ReactiveFormsModule, TranslatePipe, RouterLink, LoadingSpinnerComponent],
+  imports: [ReactiveFormsModule, TranslatePipe, RouterLink, LoadingSpinnerComponent, UserSearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-xl">
@@ -53,7 +55,12 @@ import { AdminService } from '../../services/admin.service';
 
         <div>
           <label class="block text-sm font-medium text-slate-700">{{ 'admin.promoCodes.target' | translate }}</label>
-          <input type="text" formControlName="targetUserHandle" [placeholder]="'admin.promoCodes.targetPlaceholder' | translate" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+          <app-user-search-select
+            [value]="form.controls.targetUserHandle.value"
+            [placeholder]="'admin.promoCodes.targetPlaceholder' | translate"
+            [searchFn]="searchUsers"
+            (valueChange)="form.controls.targetUserHandle.setValue($event)"
+          />
         </div>
 
         <div>
@@ -86,6 +93,10 @@ export class PromoCodeFormComponent implements OnInit {
 
   protected readonly saving = signal(false);
   protected readonly isEdit = signal(false);
+
+  /** Arrow-function property (not a method) so it stays bound to `this` when passed as a plain input value. */
+  protected readonly searchUsers = (query: string): Observable<UserSearchOption[]> =>
+    this.adminService.searchUsers({ search: query, limit: 8 }).pipe(map((res) => res.items));
 
   protected readonly form = this.fb.nonNullable.group({
     code: ['', Validators.required],

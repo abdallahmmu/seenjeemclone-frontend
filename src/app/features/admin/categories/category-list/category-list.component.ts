@@ -115,6 +115,7 @@ export class CategoryListComponent {
   protected readonly columns = computed<DataTableColumn<Category>[]>(() => [
     { key: 'name', labelKey: 'admin.categories.name', cell: (c) => this.categoryName(c) },
     { key: 'group', labelKey: 'admin.categories.group', cell: (c) => this.groupName(c.groupId) },
+    { key: 'questionCount', labelKey: 'admin.categories.questionCount', cell: (c) => String(c.questionCount ?? 0) },
     {
       key: 'active',
       labelKey: 'common.status',

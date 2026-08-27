@@ -34,20 +34,18 @@ import { AdminService } from '../../services/admin.service';
           <label for="active" class="text-sm text-slate-700">{{ 'common.active' | translate }}</label>
         </div>
 
-        @if (isEdit()) {
-          <div>
-            <label class="block text-sm font-medium text-slate-700">{{ 'admin.creditPackages.image' | translate }}</label>
-            <div class="mt-2 flex items-center gap-4">
-              @if (displayImageUrl(); as url) {
-                <img [src]="url" alt="" class="h-16 w-16 rounded-lg object-cover" />
-              }
-              <label class="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
-                {{ uploading() ? '…' : ('admin.creditPackages.uploadImage' | translate) }}
-                <input type="file" class="hidden" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event)" />
-              </label>
-            </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700">{{ 'admin.creditPackages.image' | translate }}</label>
+          <div class="mt-2 flex items-center gap-4">
+            @if (displayImageUrl(); as url) {
+              <img [src]="url" alt="" class="h-16 w-16 rounded-lg object-cover" />
+            }
+            <label class="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              {{ uploading() ? '…' : ('admin.creditPackages.uploadImage' | translate) }}
+              <input type="file" class="hidden" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event)" />
+            </label>
           </div>
-        }
+        </div>
 
         <div class="flex justify-end gap-3">
           <a routerLink="/admin/credit-packages" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">{{ 'common.cancel' | translate }}</a>
@@ -71,7 +69,12 @@ export class CreditPackageFormComponent implements OnInit {
   protected readonly uploading = signal(false);
   protected readonly isEdit = signal(false);
   protected readonly imageUrl = signal<string | null>(null);
+  /** Staged locally until the package itself is created — image upload needs a real id. */
+  protected readonly pendingImageFile = signal<File | null>(null);
+  protected readonly previewUrl = signal<string | null>(null);
   protected readonly displayImageUrl = computed(() => {
+    const preview = this.previewUrl();
+    if (preview) return preview;
     const url = this.imageUrl();
     return url ? backendAssetUrl(url) : null;
   });
@@ -103,7 +106,18 @@ export class CreditPackageFormComponent implements OnInit {
   protected onImageSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file || !this.packageId) return;
+    if (!file) return;
+
+    const previousPreview = this.previewUrl();
+    if (previousPreview) URL.revokeObjectURL(previousPreview);
+
+    if (!this.isEdit()) {
+      // No id yet to upload against — stage the file and preview it locally;
+      // the actual upload happens right after create() succeeds in submit().
+      this.pendingImageFile.set(file);
+      this.previewUrl.set(URL.createObjectURL(file));
+      return;
+    }
 
     this.uploading.set(true);
     this.adminService.uploadCreditPackageImage(this.packageId, file).subscribe({
@@ -126,14 +140,40 @@ export class CreditPackageFormComponent implements OnInit {
 
     this.saving.set(true);
     const payload = this.form.getRawValue();
-    const request = this.isEdit()
-      ? this.adminService.updateCreditPackage(this.packageId, payload)
-      : this.adminService.createCreditPackage(payload);
 
-    request.subscribe({
-      next: () => {
-        this.toastService.success('Credit package saved.');
-        this.router.navigateByUrl('/admin/credit-packages');
+    if (this.isEdit()) {
+      this.adminService.updateCreditPackage(this.packageId, payload).subscribe({
+        next: () => {
+          this.toastService.success('Credit package saved.');
+          this.router.navigateByUrl('/admin/credit-packages');
+        },
+        error: (err: unknown) => {
+          this.saving.set(false);
+          this.toastService.error(apiErrorMessage(err, 'Could not save the package.'));
+        },
+      });
+      return;
+    }
+
+    this.adminService.createCreditPackage(payload).subscribe({
+      next: (pkg) => {
+        const file = this.pendingImageFile();
+        if (!file) {
+          this.toastService.success('Credit package saved.');
+          this.router.navigateByUrl('/admin/credit-packages');
+          return;
+        }
+
+        this.adminService.uploadCreditPackageImage(pkg.id, file).subscribe({
+          next: () => {
+            this.toastService.success('Credit package saved.');
+            this.router.navigateByUrl('/admin/credit-packages');
+          },
+          error: (err: unknown) => {
+            this.toastService.error(apiErrorMessage(err, 'Package saved, but the image could not be uploaded.'));
+            this.router.navigateByUrl('/admin/credit-packages');
+          },
+        });
       },
       error: (err: unknown) => {
         this.saving.set(false);

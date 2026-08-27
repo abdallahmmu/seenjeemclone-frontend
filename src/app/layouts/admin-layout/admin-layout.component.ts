@@ -23,6 +23,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { path: '/admin/purchase-orders', labelKey: 'admin.nav.purchaseOrders', icon: '🧾' },
   { path: '/admin/promo-codes', labelKey: 'admin.nav.promoCodes', icon: '🎟️' },
   { path: '/admin/banners', labelKey: 'admin.nav.banners', icon: '📣' },
+  { path: '/admin/users', labelKey: 'admin.nav.users', icon: '🧑‍🤝‍🧑', superAdminOnly: true },
   { path: '/admin/admins', labelKey: 'admin.nav.admins', icon: '👥', superAdminOnly: true },
   { path: '/admin/audit-logs', labelKey: 'admin.nav.auditLogs', icon: '📜', superAdminOnly: true },
   { path: '/admin/settings', labelKey: 'admin.nav.settings', icon: '⚙️', superAdminOnly: true },

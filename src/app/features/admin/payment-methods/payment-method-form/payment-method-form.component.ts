@@ -34,20 +34,18 @@ import { AdminService } from '../../services/admin.service';
           <label for="active" class="text-sm text-slate-700">{{ 'common.active' | translate }}</label>
         </div>
 
-        @if (isEdit()) {
-          <div>
-            <label class="block text-sm font-medium text-slate-700">{{ 'admin.paymentMethods.image' | translate }}</label>
-            <div class="mt-2 flex items-center gap-4">
-              @if (displayImageUrl(); as url) {
-                <img [src]="url" alt="" class="h-16 w-16 rounded-lg object-cover" />
-              }
-              <label class="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
-                {{ uploading() ? '…' : ('admin.paymentMethods.uploadImage' | translate) }}
-                <input type="file" class="hidden" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event)" />
-              </label>
-            </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700">{{ 'admin.paymentMethods.image' | translate }}</label>
+          <div class="mt-2 flex items-center gap-4">
+            @if (displayImageUrl(); as url) {
+              <img [src]="url" alt="" class="h-16 w-16 rounded-lg object-cover" />
+            }
+            <label class="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              {{ uploading() ? '…' : ('admin.paymentMethods.uploadImage' | translate) }}
+              <input type="file" class="hidden" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event)" />
+            </label>
           </div>
-        }
+        </div>
 
         <div class="flex justify-end gap-3">
           <a routerLink="/admin/payment-methods" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">{{ 'common.cancel' | translate }}</a>
@@ -71,7 +69,12 @@ export class PaymentMethodFormComponent implements OnInit {
   protected readonly uploading = signal(false);
   protected readonly isEdit = signal(false);
   protected readonly imageUrl = signal<string | null>(null);
+  /** Staged locally until the payment method itself is created — image upload needs a real id. */
+  protected readonly pendingImageFile = signal<File | null>(null);
+  protected readonly previewUrl = signal<string | null>(null);
   protected readonly displayImageUrl = computed(() => {
+    const preview = this.previewUrl();
+    if (preview) return preview;
     const url = this.imageUrl();
     return url ? backendAssetUrl(url) : null;
   });
@@ -103,7 +106,18 @@ export class PaymentMethodFormComponent implements OnInit {
   protected onImageSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file || !this.methodId) return;
+    if (!file) return;
+
+    const previousPreview = this.previewUrl();
+    if (previousPreview) URL.revokeObjectURL(previousPreview);
+
+    if (!this.isEdit()) {
+      // No id yet to upload against — stage the file and preview it locally;
+      // the actual upload happens right after create() succeeds in submit().
+      this.pendingImageFile.set(file);
+      this.previewUrl.set(URL.createObjectURL(file));
+      return;
+    }
 
     this.uploading.set(true);
     this.adminService.uploadPaymentMethodImage(this.methodId, file).subscribe({
@@ -127,14 +141,40 @@ export class PaymentMethodFormComponent implements OnInit {
     this.saving.set(true);
     const value = this.form.getRawValue();
     const payload = { ...value, instructions: value.instructions || null };
-    const request = this.isEdit()
-      ? this.adminService.updatePaymentMethod(this.methodId, payload)
-      : this.adminService.createPaymentMethod(payload);
 
-    request.subscribe({
-      next: () => {
-        this.toastService.success('Payment method saved.');
-        this.router.navigateByUrl('/admin/payment-methods');
+    if (this.isEdit()) {
+      this.adminService.updatePaymentMethod(this.methodId, payload).subscribe({
+        next: () => {
+          this.toastService.success('Payment method saved.');
+          this.router.navigateByUrl('/admin/payment-methods');
+        },
+        error: (err: unknown) => {
+          this.saving.set(false);
+          this.toastService.error(apiErrorMessage(err, 'Could not save the payment method.'));
+        },
+      });
+      return;
+    }
+
+    this.adminService.createPaymentMethod(payload).subscribe({
+      next: (method) => {
+        const file = this.pendingImageFile();
+        if (!file) {
+          this.toastService.success('Payment method saved.');
+          this.router.navigateByUrl('/admin/payment-methods');
+          return;
+        }
+
+        this.adminService.uploadPaymentMethodImage(method.id, file).subscribe({
+          next: () => {
+            this.toastService.success('Payment method saved.');
+            this.router.navigateByUrl('/admin/payment-methods');
+          },
+          error: (err: unknown) => {
+            this.toastService.error(apiErrorMessage(err, 'Payment method saved, but the image could not be uploaded.'));
+            this.router.navigateByUrl('/admin/payment-methods');
+          },
+        });
       },
       error: (err: unknown) => {
         this.saving.set(false);

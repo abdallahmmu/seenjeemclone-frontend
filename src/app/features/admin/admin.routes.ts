@@ -184,6 +184,18 @@ export const ADMIN_ROUTES: Routes = [
     title: 'Edit banner',
   },
   {
+    path: 'users',
+    canActivate: [superAdminGuard],
+    loadComponent: () => import('./users/user-list/user-list.component').then((m) => m.UserListComponent),
+    title: 'Users',
+  },
+  {
+    path: 'users/:id/edit',
+    canActivate: [superAdminGuard],
+    loadComponent: () => import('./users/user-form/user-form.component').then((m) => m.UserFormComponent),
+    title: 'Edit user',
+  },
+  {
     path: 'admins',
     canActivate: [superAdminGuard],
     loadComponent: () => import('./admins/admins.component').then((m) => m.AdminsComponent),

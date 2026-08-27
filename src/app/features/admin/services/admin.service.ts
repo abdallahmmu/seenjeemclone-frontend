@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ApiEnvelope } from '../../../core/models/api.model';
+import { ApiEnvelope, ApiListEnvelope } from '../../../core/models/api.model';
 import { AdminStats } from '../../../core/models/admin.model';
 import { Banner, UpdateBannerRequest } from '../../../core/models/banner.model';
 import {
@@ -16,6 +16,9 @@ import {
 import { CreateCreditPackageRequest, CreditPackage, UpdateCreditPackageRequest } from '../../../core/models/credit-package.model';
 import { CreateHelperToolRequest, HelperTool, UpdateHelperToolRequest } from '../../../core/models/helper-tool.model';
 import { CreatePaymentMethodRequest, PaymentMethod, UpdatePaymentMethodRequest } from '../../../core/models/payment-method.model';
+import { ListUsersFilter, ManagedUser, UpdateUserRequest } from '../../../core/models/managed-user.model';
+import { UserRole } from '../../../core/models/user.model';
+import { PagedResult } from './super-admin.service';
 import { CreatePromoCodeRequest, PromoCode, UpdatePromoCodeRequest } from '../../../core/models/promo-code.model';
 import { PurchaseOrder, PurchaseOrderStatus } from '../../../core/models/purchase-order.model';
 import {
@@ -359,6 +362,50 @@ export class AdminService {
   rejectPurchaseOrder(id: string, reason?: string): Observable<PurchaseOrder> {
     return this.http
       .post<ApiEnvelope<PurchaseOrder>>(`${this.base}/admin/purchase-orders/${id}/reject`, { reason })
+      .pipe(map((res) => res.data));
+  }
+
+  // Users — full account browser + control surface (list/get are
+  // ADMIN-or-SUPER_ADMIN; every mutation below is SUPER_ADMIN only, see
+  // user.route.ts). `searchUsers` at a small `limit` also backs the
+  // promo-code form's searchable user picker.
+  searchUsers(filter: Partial<ListUsersFilter> = {}): Observable<PagedResult<ManagedUser>> {
+    let params = new HttpParams()
+      .set('limit', filter.limit ?? 20)
+      .set('offset', filter.offset ?? 0);
+    if (filter.search) params = params.set('search', filter.search);
+    if (filter.role) params = params.set('role', filter.role);
+
+    return this.http
+      .get<ApiListEnvelope<ManagedUser>>(`${this.base}/admin/users`, { params })
+      .pipe(map((res) => ({ items: res.data, total: res.meta?.total ?? res.data.length })));
+  }
+
+  getUser(id: string): Observable<ManagedUser> {
+    return this.http.get<ApiEnvelope<ManagedUser>>(`${this.base}/admin/users/${id}`).pipe(map((res) => res.data));
+  }
+
+  updateUser(id: string, payload: UpdateUserRequest): Observable<ManagedUser> {
+    return this.http
+      .patch<ApiEnvelope<ManagedUser>>(`${this.base}/admin/users/${id}`, payload)
+      .pipe(map((res) => res.data));
+  }
+
+  setUserRole(id: string, role: UserRole): Observable<ManagedUser> {
+    return this.http
+      .patch<ApiEnvelope<ManagedUser>>(`${this.base}/admin/users/${id}/role`, { role })
+      .pipe(map((res) => res.data));
+  }
+
+  setUserActive(id: string, isActive: boolean): Observable<ManagedUser> {
+    return this.http
+      .patch<ApiEnvelope<ManagedUser>>(`${this.base}/admin/users/${id}/active`, { isActive })
+      .pipe(map((res) => res.data));
+  }
+
+  adjustUserCredits(id: string, delta: number): Observable<ManagedUser> {
+    return this.http
+      .post<ApiEnvelope<ManagedUser>>(`${this.base}/admin/users/${id}/credits`, { delta })
       .pipe(map((res) => res.data));
   }
 }
