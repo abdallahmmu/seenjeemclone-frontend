@@ -16,27 +16,27 @@ import { GameService } from '../services/game.service';
     @if (loading()) {
       <app-loading-spinner [fullPage]="true" [size]="40" />
     } @else if (results(); as r) {
-      <div class="mx-auto max-w-2xl px-4 py-12 text-center">
-        <h1 class="text-3xl font-extrabold text-slate-900">{{ 'game.results.title' | translate }}</h1>
+      <div class="mx-auto max-w-2xl bg-bg px-4 py-12 text-center">
+        <h1 class="nb-heading text-4xl text-ink">{{ 'game.results.title' | translate }}</h1>
 
         @if (isTie()) {
-          <p class="mt-3 text-lg font-semibold text-slate-600">{{ 'game.results.tie' | translate }}</p>
+          <p class="mt-3 text-lg font-bold text-ink-soft">{{ 'game.results.tie' | translate }}</p>
         } @else if (winnerName(); as winner) {
-          <p class="mt-3 text-lg font-semibold text-primary">🏆 {{ 'game.results.winner' | translate }}: {{ winner }}</p>
+          <p class="nb-accent mt-3 text-xl">🏆 {{ 'game.results.winner' | translate }}: {{ winner }}</p>
         }
 
         <div class="mt-6 grid grid-cols-2 gap-4">
           @for (team of r.teams; track team.id) {
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm font-semibold text-slate-700">{{ team.name }}</p>
-              <p class="mt-2 text-4xl font-black text-primary">{{ team.score }}</p>
+            <div class="nb-card p-5">
+              <p class="text-sm font-bold text-ink">{{ team.name }}</p>
+              <p class="nb-heading mt-2 text-4xl text-primary">{{ team.score }}</p>
 
               @if (team.breakdownByCategory.length) {
-                <ul class="mt-4 space-y-1 text-start text-xs text-slate-500">
+                <ul class="mt-4 space-y-1 text-start text-xs text-ink-soft">
                   @for (entry of team.breakdownByCategory; track entry.categoryId) {
                     <li class="flex justify-between">
                       <span>{{ entry.categoryNameEn }}</span>
-                      <span class="font-medium text-slate-700">{{ entry.points }}</span>
+                      <span class="font-bold text-ink">{{ entry.points }}</span>
                     </li>
                   }
                 </ul>
@@ -46,17 +46,10 @@ import { GameService } from '../services/game.service';
         </div>
 
         <div class="mt-8 flex justify-center gap-3">
-          <button
-            type="button"
-            class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark"
-            (click)="playAgain()"
-          >
+          <button type="button" class="nb-btn nb-btn-primary px-5 py-2.5 text-sm" (click)="playAgain()">
             {{ 'game.results.playAgain' | translate }}
           </button>
-          <a
-            routerLink="/"
-            class="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
+          <a routerLink="/" class="nb-btn nb-btn-outline px-5 py-2.5 text-sm">
             {{ 'game.results.backHome' | translate }}
           </a>
         </div>

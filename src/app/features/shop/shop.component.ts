@@ -15,70 +15,65 @@ import { ShopService } from './services/shop.service';
   imports: [TranslatePipe, LoadingSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-4xl px-4 py-10">
-      <h1 class="text-2xl font-bold text-slate-900">{{ 'shop.title' | translate }}</h1>
-      <p class="mt-1 text-sm text-slate-500">{{ 'shop.subtitle' | translate: { credits: currentCredits() } }}</p>
+    <div class="mx-auto max-w-4xl bg-bg px-4 py-10">
+      <h1 class="nb-heading text-3xl text-ink">{{ 'shop.title' | translate }}</h1>
+      <p class="mt-1 text-sm text-ink-soft">{{ 'shop.subtitle' | translate: { credits: currentCredits() } }}</p>
 
       @if (loading()) {
         <div class="mt-10 flex justify-center"><app-loading-spinner [size]="28" /></div>
       } @else {
         <div class="mt-8">
-          <h2 class="text-sm font-semibold text-slate-700">{{ 'shop.choosePackage' | translate }}</h2>
+          <h2 class="nb-heading text-base text-ink">{{ 'shop.choosePackage' | translate }}</h2>
           <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             @for (pkg of packages(); track pkg.id) {
               <button
                 type="button"
-                class="flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition hover:-translate-y-0.5"
-                [class]="selectedPackage()?.id === pkg.id ? 'border-primary bg-primary-soft' : 'border-slate-200 bg-white hover:border-secondary'"
+                class="nb-card flex flex-col items-center gap-2 p-4 text-center transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--color-ink)]"
+                [class]="selectedPackage()?.id === pkg.id ? 'bg-primary-soft' : 'bg-surface'"
                 (click)="selectedPackage.set(pkg)"
               >
                 @if (pkg.imageUrl) {
-                  <img [src]="assetUrl(pkg.imageUrl)" alt="" class="h-14 w-14 rounded-lg object-cover" />
+                  <img [src]="assetUrl(pkg.imageUrl)" alt="" class="h-14 w-14 rounded-lg border-2 border-ink object-cover" />
                 } @else {
                   <span class="text-3xl">💳</span>
                 }
-                <span class="text-lg font-bold text-slate-900">{{ pkg.credits }}</span>
-                <span class="text-xs text-slate-500">{{ pkg.priceEgp }} EGP</span>
+                <span class="nb-heading text-lg text-ink">{{ pkg.credits }}</span>
+                <span class="text-xs font-semibold text-ink-soft">{{ pkg.priceEgp }} EGP</span>
               </button>
             }
           </div>
 
-          <h2 class="mt-8 text-sm font-semibold text-slate-700">{{ 'shop.choosePaymentMethod' | translate }}</h2>
+          <h2 class="nb-heading mt-8 text-base text-ink">{{ 'shop.choosePaymentMethod' | translate }}</h2>
           <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             @for (method of paymentMethods(); track method.id) {
               <button
                 type="button"
-                class="flex items-start gap-3 rounded-xl border-2 p-4 text-start transition"
-                [class]="selectedMethod()?.id === method.id ? 'border-primary bg-primary-soft' : 'border-slate-200 bg-white hover:border-secondary'"
+                class="nb-card flex items-start gap-3 p-4 text-start transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--color-ink)]"
+                [class]="selectedMethod()?.id === method.id ? 'bg-primary-soft' : 'bg-surface'"
                 (click)="selectedMethod.set(method)"
               >
                 @if (method.imageUrl) {
-                  <img [src]="assetUrl(method.imageUrl)" alt="" class="h-10 w-10 shrink-0 rounded-lg object-cover" />
+                  <img [src]="assetUrl(method.imageUrl)" alt="" class="h-10 w-10 shrink-0 rounded-lg border-2 border-ink object-cover" />
                 }
                 <span>
-                  <span class="block text-sm font-semibold text-slate-800">{{ method.name }}</span>
+                  <span class="block text-sm font-bold text-ink">{{ method.name }}</span>
                   @if (method.instructions) {
-                    <span class="block text-xs text-slate-500">{{ method.instructions }}</span>
+                    <span class="block text-xs text-ink-soft">{{ method.instructions }}</span>
                   }
                 </span>
               </button>
             }
           </div>
 
-          <h2 class="mt-8 text-sm font-semibold text-slate-700">{{ 'shop.uploadProof' | translate }}</h2>
-          <p class="mt-1 text-xs text-slate-400">{{ 'shop.uploadProofHint' | translate }}</p>
-          <label class="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+          <h2 class="nb-heading mt-8 text-base text-ink">{{ 'shop.uploadProof' | translate }}</h2>
+          <p class="mt-1 text-xs text-ink-soft">{{ 'shop.uploadProofHint' | translate }}</p>
+          <label class="nb-btn nb-btn-outline mt-3 inline-flex cursor-pointer px-4 py-2 text-sm">
             {{ proofFile() ? proofFile()!.name : ('shop.chooseFile' | translate) }}
             <input type="file" class="hidden" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event)" />
           </label>
 
           <div class="mt-6">
-            <button
-              type="button"
-              [disabled]="!canSubmit() || submitting()"
-              class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
-              (click)="submitOrder()"
-            >
+            <button type="button" [disabled]="!canSubmit() || submitting()" class="nb-btn nb-btn-primary px-6 py-2.5 text-sm" (click)="submitOrder()">
               @if (submitting()) { <app-loading-spinner [size]="16" variant="white" /> }
               {{ 'shop.submitOrder' | translate }}
             </button>
@@ -86,15 +81,15 @@ import { ShopService } from './services/shop.service';
         </div>
 
         <div class="mt-12">
-          <h2 class="text-lg font-bold text-slate-900">{{ 'shop.myOrders' | translate }}</h2>
+          <h2 class="nb-heading text-xl text-ink">{{ 'shop.myOrders' | translate }}</h2>
           @if (orders().length === 0) {
-            <p class="mt-2 text-sm text-slate-400">{{ 'shop.noOrders' | translate }}</p>
+            <p class="mt-2 text-sm text-ink-soft">{{ 'shop.noOrders' | translate }}</p>
           } @else {
             <div class="mt-3 space-y-2">
               @for (order of orders(); track order.id) {
-                <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm">
-                  <span>{{ order.creditsRequested }} {{ 'shop.credits' | translate }} — {{ order.priceEgp }} EGP</span>
-                  <span class="rounded-full px-2.5 py-1 text-xs font-semibold" [class]="statusClass(order.status)">
+                <div class="nb-card flex items-center justify-between px-4 py-3 text-sm">
+                  <span class="font-medium text-ink">{{ order.creditsRequested }} {{ 'shop.credits' | translate }} — {{ order.priceEgp }} EGP</span>
+                  <span class="nb-badge normal-case" [class]="statusClass(order.status)">
                     {{ ('shop.status' + order.status) | translate }}
                   </span>
                 </div>
@@ -153,9 +148,9 @@ export class ShopComponent implements OnInit {
   }
 
   protected statusClass(status: PurchaseOrder['status']): string {
-    if (status === 'APPROVED') return 'bg-secondary-soft text-secondary-dark';
-    if (status === 'REJECTED') return 'bg-red-100 text-red-700';
-    return 'bg-accent-soft text-accent-dark';
+    if (status === 'APPROVED') return 'nb-badge-secondary';
+    if (status === 'REJECTED') return 'nb-badge-soft';
+    return 'bg-secondary-soft text-secondary-dark';
   }
 
   protected onFileSelected(event: Event): void {

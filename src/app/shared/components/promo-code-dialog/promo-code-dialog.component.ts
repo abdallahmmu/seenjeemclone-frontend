@@ -14,39 +14,36 @@ import { TranslateService } from '../../../core/services/translate.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (open()) {
-      <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4" (click)="closed.emit()">
-        <div class="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-xl" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-          <svg viewBox="0 0 24 24" fill="none" class="mx-auto h-16 w-16 text-primary">
-            <path
-              d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6M22 7H2v5h20V7ZM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7ZM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7Z"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+      <div class="fixed inset-0 z-40 flex items-center justify-center bg-ink/50 p-4" (click)="closed.emit()">
+        <div class="nb-card w-full max-w-sm p-6 text-center" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+          <div class="nb-tilt mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-ink bg-secondary-soft">
+            <svg viewBox="0 0 24 24" fill="none" class="h-11 w-11 text-primary">
+              <path
+                d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6M22 7H2v5h20V7ZM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7ZM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
 
-          <h2 class="mt-3 text-lg font-semibold text-slate-900">{{ 'promoCode.title' | translate }}</h2>
-          <p class="mt-1 text-sm text-slate-500">{{ 'promoCode.subtitle' | translate }}</p>
+          <h2 class="nb-heading mt-4 text-xl text-ink">{{ 'promoCode.title' | translate }}</h2>
+          <p class="mt-1 text-sm text-ink-soft">{{ 'promoCode.subtitle' | translate }}</p>
 
           <input
             type="text"
             [(ngModel)]="code"
             [placeholder]="'promoCode.placeholder' | translate"
-            class="mt-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-sm uppercase tracking-wide"
+            class="nb-input mt-4 text-center uppercase tracking-wide"
             (keyup.enter)="submit()"
           />
 
           <div class="mt-5 flex justify-center gap-3">
-            <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100" (click)="closed.emit()">
+            <button type="button" class="nb-btn nb-btn-outline px-4 py-2 text-sm" (click)="closed.emit()">
               {{ 'common.cancel' | translate }}
             </button>
-            <button
-              type="button"
-              [disabled]="!code.trim() || submitting()"
-              class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
-              (click)="submit()"
-            >
+            <button type="button" [disabled]="!code.trim() || submitting()" class="nb-btn nb-btn-primary px-4 py-2 text-sm" (click)="submit()">
               {{ 'promoCode.submit' | translate }}
             </button>
           </div>

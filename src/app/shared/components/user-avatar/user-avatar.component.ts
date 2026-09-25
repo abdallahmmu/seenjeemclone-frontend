@@ -6,10 +6,10 @@ import { initialsFromHandle, resolveAvatarUrl } from '../../utils/avatar-url';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (resolvedUrl(); as url) {
-      <img [src]="url" alt="" class="rounded-full object-cover" [style.width.px]="size()" [style.height.px]="size()" />
+      <img [src]="url" alt="" class="rounded-full border-2 border-ink object-cover" [style.width.px]="size()" [style.height.px]="size()" />
     } @else {
       <div
-        class="flex items-center justify-center rounded-full bg-primary font-semibold text-white"
+        class="flex items-center justify-center rounded-full border-2 border-ink bg-primary font-bold text-white"
         [style.width.px]="size()"
         [style.height.px]="size()"
         [style.fontSize.px]="size() * 0.4"

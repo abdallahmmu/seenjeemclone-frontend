@@ -14,7 +14,7 @@ import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
     <div class="relative">
       <button
         type="button"
-        class="flex items-center gap-2 rounded-md px-2 py-1 text-sm font-medium text-slate-700 hover:bg-slate-100"
+        class="flex items-center gap-2 rounded-lg border-2 border-transparent px-2 py-1 text-sm font-semibold text-ink transition-colors hover:border-ink hover:bg-secondary-soft"
         (click)="toggle($event)"
       >
         <app-user-avatar
@@ -23,27 +23,27 @@ import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
           [size]="28"
         />
         <span class="hidden sm:inline">{{ authService.currentUser()?.handle }}</span>
-        <span class="text-xs text-slate-400">▾</span>
+        <span class="text-xs text-ink-soft">▾</span>
       </button>
 
       @if (open()) {
-        <div class="absolute end-0 z-20 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
-          <a routerLink="/profile" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+        <div class="nb-card absolute end-0 z-20 mt-2 w-48 overflow-hidden rounded-lg! py-1">
+          <a routerLink="/profile" class="block px-4 py-2 text-sm font-medium text-ink hover:bg-secondary-soft">
             {{ 'nav.myAccount' | translate }}
           </a>
-          <a routerLink="/history" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+          <a routerLink="/history" class="block px-4 py-2 text-sm font-medium text-ink hover:bg-secondary-soft">
             {{ 'nav.gameHistory' | translate }}
           </a>
           <button
             type="button"
-            class="block w-full px-4 py-2 text-start text-sm text-slate-700 hover:bg-slate-50"
+            class="block w-full px-4 py-2 text-start text-sm font-medium text-ink hover:bg-secondary-soft"
             (click)="openPromoDialog($event)"
           >
             {{ 'nav.havePromoCode' | translate }}
           </button>
           <button
             type="button"
-            class="block w-full px-4 py-2 text-start text-sm text-slate-700 hover:bg-slate-50"
+            class="block w-full px-4 py-2 text-start text-sm font-medium text-primary hover:bg-primary-soft"
             (click)="logout()"
           >
             {{ 'nav.logout' | translate }}

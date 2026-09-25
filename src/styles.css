@@ -3,40 +3,253 @@
 @import 'tailwindcss';
 
 /*
- * Seenjeem brand palette — the single source of truth for the game's
- * colors. Change a value here and every `bg-primary`, `text-accent`, etc.
- * utility across the app picks it up (Tailwind v4 generates those
- * utilities straight from these @theme tokens).
+ * Seenjeem brand palette — Neubrutalism (warm/playful), per CLAUDE.md.
+ * Change a value here and every `bg-primary`, `text-accent`, etc. utility
+ * across the app picks it up (Tailwind v4 generates those utilities
+ * straight from these @theme tokens). The system defines exactly two
+ * accent hues (red + mustard) — "accent" and "secondary" are the same
+ * mustard family, and the two game teams are red vs. mustard-dark so the
+ * board reads at a glance without inventing a third brand color.
  */
 @theme {
-  --font-ar: 'Cairo', 'Segoe UI', sans-serif;
-  --font-en: 'Roboto', 'Segoe UI', sans-serif;
+  --font-ar-body: 'Cairo', 'Segoe UI', sans-serif;
+  --font-ar-display: 'Lalezar', 'Cairo', sans-serif;
+  --font-en-body: 'Inter', 'Segoe UI', sans-serif;
+  --font-en-display: 'Archivo Black', 'Arial Black', sans-serif;
+  --font-en-accent: 'Instrument Serif', Georgia, serif;
 
-  --color-primary: #218dae;
-  --color-primary-dark: #1a7089;
-  --color-primary-soft: #e5f4f8;
+  --color-bg: #f0ebdd;
+  --color-surface: #ffffff;
+  --color-ink: #111111;
+  --color-ink-soft: #5b5340;
 
-  --color-secondary: #2bbbd7;
-  --color-secondary-dark: #249fb7;
-  --color-secondary-soft: #e3f8fb;
+  --color-primary: #dc2626;
+  --color-primary-dark: #a51c1c;
+  --color-primary-soft: #fbdfdb;
 
-  --color-accent: #ffd758;
-  --color-accent-dark: #d8b74b;
-  --color-accent-soft: #fce59a;
+  --color-secondary: #f5b942;
+  --color-secondary-dark: #9c6a11;
+  --color-secondary-soft: #fceac0;
 
-  /* Team colors — kept distinct (blue vs. gold) so the board reads at a glance. */
+  /* No third brand hue in the system — accent aliases to secondary (mustard). */
+  --color-accent: var(--color-secondary);
+  --color-accent-dark: var(--color-secondary-dark);
+  --color-accent-soft: var(--color-secondary-soft);
+
   --color-team-a: var(--color-primary);
   --color-team-a-soft: var(--color-primary-soft);
-  --color-team-b: var(--color-accent-dark);
-  --color-team-b-soft: var(--color-accent-soft);
+  --color-team-b: var(--color-secondary-dark);
+  --color-team-b-soft: var(--color-secondary-soft);
 }
 
-/* Cairo for Arabic, Roboto for everything else — switches with the <html dir> TranslateService sets. */
 body {
-  font-family: var(--font-en);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-en-body);
 }
+/* Cairo for Arabic body copy, switching with the <html dir> TranslateService sets. */
 html[dir='rtl'] body {
-  font-family: var(--font-ar);
+  font-family: var(--font-ar-body);
+}
+
+/*
+ * Neubrutalist primitives — the load-bearing classes for the "2-3px black
+ * border + flat offset shadow + press-on-hover" look. Applied across
+ * components instead of repeating the same border/shadow utility string in
+ * every template. Archivo Black/Instrument Serif have no Arabic
+ * letterforms, so `.nb-heading`/`.nb-accent` swap to a bold Arabic display
+ * face (Lalezar) under dir="rtl" and drop the (meaningless in Arabic)
+ * uppercase/tracking/italic treatment — color and weight carry the accent
+ * instead.
+ */
+.nb-heading {
+  font-family: var(--font-en-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+}
+html[dir='rtl'] .nb-heading {
+  font-family: var(--font-ar-display);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.nb-accent {
+  font-family: var(--font-en-accent);
+  font-style: italic;
+  color: var(--color-primary);
+}
+html[dir='rtl'] .nb-accent {
+  font-family: var(--font-ar-display);
+  font-style: normal;
+}
+
+.nb-card {
+  background: var(--color-surface);
+  border: 2px solid var(--color-ink);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+
+.nb-lift {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+.nb-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 7px 7px 0 var(--color-ink);
+}
+
+.nb-tilt {
+  transform: rotate(-1.5deg);
+  transition: transform 160ms ease;
+}
+.nb-tilt-alt {
+  transform: rotate(1deg);
+  transition: transform 160ms ease;
+}
+.nb-tilt:hover,
+.nb-tilt-alt:hover {
+  transform: rotate(0deg);
+}
+
+.nb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 10px;
+  font-weight: 700;
+  box-shadow: 4px 4px 0 var(--color-ink);
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+.nb-btn:hover:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+.nb-btn:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--color-ink);
+}
+.nb-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.nb-btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.nb-btn-secondary {
+  background: var(--color-secondary);
+  color: var(--color-ink);
+}
+.nb-btn-outline {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.nb-input {
+  width: 100%;
+  border: 2px solid var(--color-ink);
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+  background: var(--color-surface);
+  transition:
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+.nb-input:focus {
+  outline: none;
+  box-shadow: 3px 3px 0 var(--color-ink);
+  transform: translate(-1px, -1px);
+}
+html[dir='rtl'] .nb-input:focus {
+  transform: translate(1px, -1px);
+}
+
+.nb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 2px solid var(--color-ink);
+  border-radius: 8px;
+  padding: 2px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+html[dir='rtl'] .nb-badge {
+  text-transform: none;
+  letter-spacing: normal;
+}
+.nb-badge-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.nb-badge-secondary {
+  background: var(--color-secondary);
+  color: var(--color-ink);
+}
+.nb-badge-soft {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.nb-link {
+  position: relative;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.nb-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 160ms ease;
+}
+html[dir='rtl'] .nb-link::after {
+  transform-origin: left;
+}
+.nb-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* Color-neutral version of the underline-draw, for nav items that already control their own color (active state, hover tint). */
+.nb-underline {
+  position: relative;
+  text-decoration: none;
+}
+.nb-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 160ms ease;
+}
+html[dir='rtl'] .nb-underline::after {
+  transform-origin: left;
+}
+.nb-underline:hover::after,
+.nb-underline.is-active::after {
+  transform: scaleX(1);
 }
 
 @keyframes fade-in-up {
@@ -155,5 +368,14 @@ html[dir='rtl'] body {
   }
   .faq-panel {
     transition: none;
+  }
+  .nb-btn,
+  .nb-input,
+  .nb-lift,
+  .nb-tilt,
+  .nb-tilt-alt,
+  .nb-link::after,
+  .nb-underline::after {
+    transition: none !important;
   }
 }

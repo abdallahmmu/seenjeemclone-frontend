@@ -30,53 +30,43 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
     @if (loading()) {
       <app-loading-spinner [fullPage]="true" [size]="40" />
     } @else if (gameState.session(); as session) {
-      <div class="mx-auto max-w-5xl px-4 py-6">
+      <div class="mx-auto max-w-5xl bg-bg px-4 py-6">
         <div class="mb-3 flex justify-end">
-          <button
-            type="button"
-            class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:border-red-300 hover:text-red-600"
-            (click)="confirmFinish()"
-          >
+          <button type="button" class="nb-btn nb-btn-outline px-3 py-1.5 text-xs" (click)="confirmFinish()">
             {{ 'game.board.finishGame' | translate }}
           </button>
         </div>
 
-        <div
-          class="animate-fade-in-up mx-auto max-w-2xl rounded-2xl bg-linear-to-l from-primary via-primary to-secondary p-[2px] shadow-lg shadow-primary/20"
-        >
-          <div class="grid grid-cols-3 items-center rounded-2xl bg-white p-4 text-center">
-            <div>
-              <p class="truncate text-sm font-bold text-team-a" [title]="session.teams[0]?.name ?? ''">{{ session.teams[0]?.name }}</p>
-              <p class="text-2xl font-black text-team-a">{{ session.teams[0]?.score }}</p>
-            </div>
-            <div>
-              <p class="text-xs font-medium text-slate-400">{{ 'game.board.turn' | translate }}</p>
-              <p
-                class="mt-1 rounded-full px-3 py-1 text-xs font-semibold transition-colors"
-                [class]="session.currentTeamIndex === 0 ? 'bg-team-a-soft text-team-a' : 'bg-team-b-soft text-team-b'"
-              >
-                {{ 'game.board.turnOf' | translate: { team: gameState.activeTeam()?.name ?? '' } }}
-              </p>
-            </div>
-            <div>
-              <p class="truncate text-sm font-bold text-team-b" [title]="session.teams[1]?.name ?? ''">{{ session.teams[1]?.name }}</p>
-              <p class="text-2xl font-black text-team-b">{{ session.teams[1]?.score }}</p>
-            </div>
+        <div class="nb-card animate-fade-in-up mx-auto grid max-w-2xl grid-cols-3 items-center p-4 text-center">
+          <div>
+            <p class="truncate text-sm font-bold text-team-a" [title]="session.teams[0]?.name ?? ''">{{ session.teams[0]?.name }}</p>
+            <p class="nb-heading text-3xl text-team-a">{{ session.teams[0]?.score }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-ink-soft">{{ 'game.board.turn' | translate }}</p>
+            <p
+              class="nb-badge mt-1 normal-case"
+              [class]="session.currentTeamIndex === 0 ? 'bg-team-a-soft' : 'bg-team-b-soft'"
+              [style.color]="session.currentTeamIndex === 0 ? 'var(--color-team-a)' : 'var(--color-team-b)'"
+            >
+              {{ 'game.board.turnOf' | translate: { team: gameState.activeTeam()?.name ?? '' } }}
+            </p>
+          </div>
+          <div>
+            <p class="truncate text-sm font-bold text-team-b" [title]="session.teams[1]?.name ?? ''">{{ session.teams[1]?.name }}</p>
+            <p class="nb-heading text-3xl text-team-b">{{ session.teams[1]?.score }}</p>
           </div>
         </div>
 
         <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           @for (categoryId of categoryIds(); track categoryId; let ci = $index) {
-            <div
-              class="animate-fade-in-up flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3"
-              [style.animation-delay.ms]="ci * 50"
-            >
+            <div class="nb-card animate-fade-in-up flex items-center justify-between gap-2 p-3" [style.animation-delay.ms]="ci * 50">
               <div class="flex flex-col gap-1.5">
                 @for (difficulty of difficulties; track difficulty) {
                   @if (tileFor(categoryId, difficulty, 0); as tile) {
                     <button
                       type="button"
-                      class="flex h-11 w-14 items-center justify-center rounded-lg border-2 text-xs font-bold transition hover:not-disabled:scale-105"
+                      class="flex h-11 w-14 items-center justify-center rounded-lg border-2 border-ink text-xs font-bold transition hover:not-disabled:-translate-y-0.5 hover:not-disabled:shadow-[3px_3px_0_var(--color-ink)]"
                       [class]="tileClasses(tile, session.currentTeamIndex, 0)"
                       [disabled]="!isPickable(tile, session.currentTeamIndex)"
                       (click)="openTile(tile)"
@@ -88,8 +78,8 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
               </div>
 
               <div class="flex flex-col items-center gap-1 px-1 text-center">
-                <img [src]="categoryImage(categoryId)" alt="" class="h-10 w-10 rounded-lg object-cover" />
-                <span class="line-clamp-2 text-xs font-semibold text-slate-700" [title]="categoryLabel(categoryId)">{{ categoryLabel(categoryId) }}</span>
+                <img [src]="categoryImage(categoryId)" alt="" class="h-10 w-10 rounded-lg border-2 border-ink object-cover" />
+                <span class="line-clamp-2 text-xs font-bold text-ink" [title]="categoryLabel(categoryId)">{{ categoryLabel(categoryId) }}</span>
               </div>
 
               <div class="flex flex-col gap-1.5">
@@ -97,7 +87,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                   @if (tileFor(categoryId, difficulty, 1); as tile) {
                     <button
                       type="button"
-                      class="flex h-11 w-14 items-center justify-center rounded-lg border-2 text-xs font-bold transition hover:not-disabled:scale-105"
+                      class="flex h-11 w-14 items-center justify-center rounded-lg border-2 border-ink text-xs font-bold transition hover:not-disabled:-translate-y-0.5 hover:not-disabled:shadow-[3px_3px_0_var(--color-ink)]"
                       [class]="tileClasses(tile, session.currentTeamIndex, 1)"
                       [disabled]="!isPickable(tile, session.currentTeamIndex)"
                       (click)="openTile(tile)"
@@ -123,30 +113,21 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
       />
 
       @if (selectedTile(); as tile) {
-        <div class="animate-fade-in fixed inset-0 z-40 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
-          <div class="animate-pop-in w-full max-w-xl rounded-3xl bg-linear-to-br from-primary via-secondary to-accent p-[3px] shadow-2xl shadow-primary/30">
-            <div class="rounded-[calc(1.5rem-1px)] bg-white p-6">
+        <div class="animate-fade-in fixed inset-0 z-40 flex items-center justify-center bg-ink/70 p-4">
+          <div class="nb-card animate-pop-in w-full max-w-xl p-6" style="box-shadow: 7px 7px 0 var(--color-ink);">
               <div class="flex items-center justify-between gap-3">
                 <div class="flex min-w-0 items-center gap-2">
-                  <img
-                    [src]="categoryImage(tile.categoryId)"
-                    alt=""
-                    class="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-primary-soft"
-                  />
-                  <span class="truncate text-sm font-bold text-slate-700">{{ categoryLabel(tile.categoryId) }}</span>
+                  <img [src]="categoryImage(tile.categoryId)" alt="" class="h-10 w-10 shrink-0 rounded-full border-2 border-ink object-cover" />
+                  <span class="truncate text-sm font-bold text-ink">{{ categoryLabel(tile.categoryId) }}</span>
                 </div>
-                <span
-                  class="animate-glow-pulse shrink-0 rounded-full bg-linear-to-l from-accent-dark to-accent px-4 py-1.5 text-sm font-black text-white"
-                >
+                <span class="nb-badge nb-badge-secondary shrink-0 normal-case">
                   {{ pointsByDifficulty[tile.difficulty] }} {{ 'game.board.pointsSuffix' | translate }}
                 </span>
               </div>
 
               @if (phase() === 'question') {
                 <div class="mt-3 flex justify-center">
-                  <span
-                    class="animate-pulse-ring inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary-dark"
-                  >
+                  <span class="nb-badge nb-badge-soft normal-case">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
                       <circle cx="12" cy="12" r="9" />
                       <path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round" />
@@ -157,7 +138,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
               }
 
               @if (phase() === 'pre') {
-                <h2 class="mt-5 text-center text-lg font-black" [class]="tile.ownerTeamIndex === 0 ? 'text-team-a' : 'text-team-b'">
+                <h2 class="nb-heading mt-5 text-center text-lg" [class]="tile.ownerTeamIndex === 0 ? 'text-team-a' : 'text-team-b'">
                   {{ pickingTeamName() }}
                 </h2>
 
@@ -165,7 +146,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                   @if (canInvokeHole()) {
                     <button
                       type="button"
-                      class="inline-flex items-center gap-1.5 rounded-full border border-secondary/40 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-secondary-dark transition hover:scale-105 hover:bg-secondary-soft disabled:opacity-50 disabled:hover:scale-100"
+                      class="nb-btn nb-btn-secondary py-1.5 ps-1.5 pe-3 text-xs"
                       [title]="translateService.t('game.board.holeHint')"
                       [disabled]="invokingHole()"
                       (click)="useHole()"
@@ -173,36 +154,24 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                       @if (invokingHole()) {
                         <app-loading-spinner [size]="16" />
                       } @else {
-                        <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
+                        <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full border border-ink bg-white object-contain" />
                       }
                       {{ 'game.board.useHole' | translate }}
                     </button>
                   }
                   @if (holeInvokedForTile()) {
-                    <span
-                      class="inline-flex items-center gap-1.5 rounded-full bg-secondary-soft py-1.5 ps-1.5 pe-3 text-xs font-semibold text-secondary-dark"
-                      [title]="translateService.t('game.board.holeHint')"
-                    >
-                      <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-secondary/30" />
+                    <span class="nb-badge nb-badge-secondary normal-case py-1.5 ps-1.5 pe-3" [title]="translateService.t('game.board.holeHint')">
+                      <img [src]="toolIcon('hole')" alt="" class="h-6 w-6 rounded-full border border-ink bg-white object-contain" />
                       {{ 'game.board.holeActive' | translate }}
                     </span>
                   }
                 </div>
 
                 <div class="mt-6 flex justify-center gap-3">
-                  <button
-                    type="button"
-                    class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
-                    (click)="closeModal()"
-                  >
+                  <button type="button" class="nb-btn nb-btn-outline px-4 py-2 text-sm" (click)="closeModal()">
                     {{ 'common.cancel' | translate }}
                   </button>
-                  <button
-                    type="button"
-                    class="animate-glow-pulse inline-flex items-center gap-2 rounded-full bg-linear-to-l from-primary to-secondary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/30 transition hover:scale-105 disabled:animate-none disabled:opacity-50 disabled:hover:scale-100"
-                    [disabled]="openingQuestion()"
-                    (click)="openQuestion()"
-                  >
+                  <button type="button" class="nb-btn nb-btn-primary px-6 py-3 text-sm" [disabled]="openingQuestion()" (click)="openQuestion()">
                     @if (openingQuestion()) {
                       <app-loading-spinner [size]="16" variant="white" />
                     } @else {
@@ -221,7 +190,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                   @if (canInvokeDoubleAnswer()) {
                     <button
                       type="button"
-                      class="inline-flex items-center gap-1.5 rounded-full border border-accent-dark/40 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-accent-dark transition hover:scale-105 hover:bg-accent-soft disabled:opacity-50 disabled:hover:scale-100"
+                      class="nb-btn nb-btn-secondary py-1.5 ps-1.5 pe-3 text-xs"
                       [title]="translateService.t('game.board.doubleAnswerHint')"
                       [disabled]="invokingDoubleAnswer()"
                       (click)="useDoubleAnswer()"
@@ -229,48 +198,42 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                       @if (invokingDoubleAnswer()) {
                         <app-loading-spinner [size]="16" />
                       } @else {
-                        <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
+                        <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full border border-ink bg-white object-contain" />
                       }
                       {{ 'game.board.useDoubleAnswer' | translate }}
                     </button>
                   }
                   @if (doubleAnswerInvokedForTile()) {
-                    <span
-                      class="inline-flex items-center gap-1.5 rounded-full bg-accent-soft py-1.5 ps-1.5 pe-3 text-xs font-semibold text-accent-dark"
-                      [title]="translateService.t('game.board.doubleAnswerHint')"
-                    >
-                      <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-accent-dark/30" />
+                    <span class="nb-badge nb-badge-secondary normal-case py-1.5 ps-1.5 pe-3" [title]="translateService.t('game.board.doubleAnswerHint')">
+                      <img [src]="toolIcon('double_answer')" alt="" class="h-6 w-6 rounded-full border border-ink bg-white object-contain" />
                       {{ 'game.board.doubleAnswerActive' | translate }}
                     </span>
                   }
                   @if (canInvokeTrap()) {
                     <button
                       type="button"
-                      class="inline-flex items-center gap-1.5 rounded-full border border-red-300 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-red-700 transition hover:scale-105 hover:bg-red-50 disabled:opacity-50 disabled:hover:scale-100"
+                      class="nb-btn nb-btn-primary py-1.5 ps-1.5 pe-3 text-xs"
                       [title]="translateService.t('game.board.trapHint')"
                       [disabled]="invokingTrap()"
                       (click)="useTrap()"
                     >
                       @if (invokingTrap()) {
-                        <app-loading-spinner [size]="16" />
+                        <app-loading-spinner [size]="16" variant="white" />
                       } @else {
-                        <img [src]="toolIcon('trap')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-red-200" />
+                        <img [src]="toolIcon('trap')" alt="" class="h-6 w-6 rounded-full border border-ink bg-white object-contain" />
                       }
                       {{ 'game.board.useTrap' | translate }}
                     </button>
                   }
                   @if (trapInvokedForTile()) {
-                    <span
-                      class="inline-flex items-center gap-1.5 rounded-full bg-red-100 py-1.5 ps-1.5 pe-3 text-xs font-semibold text-red-700"
-                      [title]="translateService.t('game.board.trapHint')"
-                    >
-                      <img [src]="toolIcon('trap')" alt="" class="h-6 w-6 rounded-full bg-white object-contain ring-1 ring-red-200" />
+                    <span class="nb-badge nb-badge-soft normal-case py-1.5 ps-1.5 pe-3" [title]="translateService.t('game.board.trapHint')">
+                      <img [src]="toolIcon('trap')" alt="" class="h-6 w-6 rounded-full border border-ink bg-white object-contain" />
                       {{ 'game.board.trapActive' | translate }}
                     </span>
                   }
                 </div>
 
-                <div class="animate-fade-in-up mt-5 rounded-2xl bg-linear-to-br from-slate-50 to-primary-soft p-6 text-center shadow-inner">
+                <div class="nb-card animate-fade-in-up mt-5 bg-secondary-soft p-6 text-center">
                   @if (question.mediaType === 'AUDIO' && question.mediaUrl) {
                     <div class="mb-4 flex justify-center">
                       <audio [src]="question.mediaUrl" controls autoplay class="w-full max-w-sm"></audio>
@@ -279,11 +242,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                   @if (question.mediaType === 'VIDEO' && videoEmbed(); as embed) {
                     <div class="mb-4">
                       @if (!videoStarted()) {
-                        <button
-                          type="button"
-                          class="mx-auto inline-flex items-center gap-2 rounded-full bg-linear-to-l from-primary to-secondary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/30 transition hover:scale-105"
-                          (click)="startVideo()"
-                        >
+                        <button type="button" class="nb-btn nb-btn-primary mx-auto px-6 py-3 text-sm" (click)="startVideo()">
                           <svg viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
                             <path d="M8 5v14l11-7z" />
                           </svg>
@@ -291,7 +250,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                         </button>
                       } @else if (videoEnded()) {
                         <div
-                          class="mx-auto flex max-w-md items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-white/60 p-6 text-sm font-semibold text-slate-500"
+                          class="mx-auto flex max-w-md items-center justify-center gap-2 rounded-xl border-2 border-dashed border-ink bg-surface/70 p-6 text-sm font-semibold text-ink-soft"
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5">
                             <path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round" />
@@ -305,7 +264,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                           autoplay
                           playsinline
                           (ended)="onVideoEnded()"
-                          class="mx-auto w-full max-w-md rounded-xl shadow-lg"
+                          class="nb-card mx-auto w-full max-w-md"
                         ></video>
                       } @else {
                         <iframe
@@ -313,14 +272,14 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                           allow="autoplay; encrypted-media"
                           allowfullscreen
                           frameborder="0"
-                          class="mx-auto aspect-video w-full max-w-md rounded-xl shadow-lg"
+                          class="nb-card mx-auto aspect-video w-full max-w-md"
                         ></iframe>
                       }
                     </div>
                   }
                   @if (question.mediaType === 'IMAGE' && question.mediaUrl) {
                     <div class="mb-4 flex justify-center">
-                      <div class="relative w-full max-w-sm overflow-hidden rounded-xl shadow-lg">
+                      <div class="nb-card relative w-full max-w-sm overflow-hidden">
                         <img
                           [src]="question.mediaUrl"
                           alt=""
@@ -330,10 +289,10 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                         @if (!imageRevealed()) {
                           <button
                             type="button"
-                            class="absolute inset-0 flex items-center justify-center bg-slate-900/30 text-sm font-bold text-white transition hover:bg-slate-900/40"
+                            class="absolute inset-0 flex items-center justify-center bg-ink/30 text-sm font-bold text-white transition hover:bg-ink/40"
                             (click)="revealImage()"
                           >
-                            <span class="inline-flex items-center gap-2 rounded-full bg-linear-to-l from-primary to-secondary px-5 py-2.5 shadow-lg">
+                            <span class="nb-btn nb-btn-primary px-5 py-2.5">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
                                 <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke-linecap="round" stroke-linejoin="round" />
                                 <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round" />
@@ -345,16 +304,11 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                       </div>
                     </div>
                   }
-                  <h2 class="text-xl leading-snug font-black text-slate-900">{{ question.text }}</h2>
+                  <h2 class="nb-heading text-xl text-ink">{{ question.text }}</h2>
                 </div>
 
                 <div class="mt-6 flex justify-center">
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-2 rounded-full bg-linear-to-l from-primary to-secondary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/30 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-                    [disabled]="revealing()"
-                    (click)="revealAnswer()"
-                  >
+                  <button type="button" class="nb-btn nb-btn-primary px-6 py-3 text-sm" [disabled]="revealing()" (click)="revealAnswer()">
                     {{ 'game.board.next' | translate }}
                     @if (revealing()) {
                       <app-loading-spinner [size]="16" variant="white" />
@@ -368,19 +322,19 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
               }
 
               @if (phase() === 'revealed' && reveal(); as revealData) {
-                <div class="animate-pop-in mt-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4 text-center">
-                  <p class="text-xs font-bold tracking-wide text-emerald-700 uppercase">{{ 'game.board.correctAnswer' | translate }}</p>
+                <div class="nb-card animate-pop-in mt-4 border-emerald-800 bg-emerald-50 p-4 text-center">
+                  <p class="text-xs font-bold tracking-wide text-emerald-800 uppercase">{{ 'game.board.correctAnswer' | translate }}</p>
                   <p class="mt-1 text-lg font-black text-emerald-900">{{ correctOptionText(revealData) }}</p>
                   @if (revealData.explanation) {
                     <p class="mt-2 text-sm text-emerald-800">{{ revealData.explanation }}</p>
                   }
                 </div>
 
-                <p class="mt-5 text-center text-sm font-semibold text-slate-700">{{ 'game.board.whoAnswered' | translate }}</p>
+                <p class="mt-5 text-center text-sm font-bold text-ink">{{ 'game.board.whoAnswered' | translate }}</p>
                 <div class="mt-2 grid grid-cols-3 gap-2">
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-a transition hover:border-team-a hover:bg-team-a-soft disabled:opacity-50"
+                    class="nb-btn nb-btn-outline justify-center gap-1.5 px-3 py-2.5 text-xs text-team-a"
                     [disabled]="resolving()"
                     (click)="resolve(0)"
                   >
@@ -391,7 +345,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-500 transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50"
+                    class="nb-btn nb-btn-outline justify-center gap-1.5 px-3 py-2.5 text-xs text-ink-soft"
                     [disabled]="resolving()"
                     (click)="resolve(null)"
                   >
@@ -402,7 +356,7 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 px-3 py-2.5 text-xs font-semibold text-team-b transition hover:border-team-b hover:bg-team-b-soft disabled:opacity-50"
+                    class="nb-btn nb-btn-outline justify-center gap-1.5 px-3 py-2.5 text-xs text-team-b"
                     [disabled]="resolving()"
                     (click)="resolve(1)"
                   >
@@ -413,7 +367,6 @@ type ModalPhase = 'pre' | 'question' | 'revealed';
                   </button>
                 </div>
               }
-            </div>
           </div>
         </div>
       }
@@ -545,12 +498,13 @@ export class BoardComponent implements OnInit, OnDestroy {
     return !tile.answered && tile.ownerTeamIndex === currentTeamIndex;
   }
 
+  // Border color is fixed (border-ink, set statically in the template) — every
+  // tile keeps the same black outline whether it's pickable or not, matching
+  // the neubrutalist "everything is bordered" rule. Only fill/text/cursor vary.
   protected tileClasses(tile: Tile, currentTeamIndex: number, ownerTeamIndex: 0 | 1): string {
-    if (tile.answered) return 'cursor-default border-slate-100 bg-slate-50 text-slate-300';
-    if (tile.ownerTeamIndex !== currentTeamIndex) return 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300';
-    return ownerTeamIndex === 0
-      ? 'border-team-a/40 bg-team-a-soft text-team-a hover:border-team-a'
-      : 'border-team-b/40 bg-team-b-soft text-team-b hover:border-team-b';
+    if (tile.answered) return 'cursor-default bg-bg text-ink-soft opacity-50';
+    if (tile.ownerTeamIndex !== currentTeamIndex) return 'cursor-not-allowed bg-bg text-ink-soft opacity-40';
+    return ownerTeamIndex === 0 ? 'bg-team-a-soft text-team-a' : 'bg-team-b-soft text-team-b';
   }
 
   protected pickingTeamName(): string {

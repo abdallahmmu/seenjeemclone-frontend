@@ -21,11 +21,11 @@ import { backendAssetUrl } from '../../utils/backend-asset-url';
   template: `
     @for (banner of banners(); track banner.id; let i = $index) {
       @if (i === 0) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4">
           <div class="relative max-h-[90vh] max-w-lg">
             <button
               type="button"
-              class="absolute -inset-e-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg hover:bg-slate-100"
+              class="nb-btn nb-btn-primary absolute -inset-e-3 -top-3 h-9 w-9 rounded-full! p-0 text-sm"
               (click)="dismiss(banner)"
               aria-label="Close"
             >
@@ -33,10 +33,10 @@ import { backendAssetUrl } from '../../utils/backend-asset-url';
             </button>
             @if (banner.linkUrl) {
               <a [href]="isExternalLink(banner.linkUrl) ? banner.linkUrl : undefined" (click)="onBannerClick($event, banner)">
-                <img [src]="assetUrl(banner.imageUrl)" alt="" class="max-h-[85vh] w-full rounded-xl object-contain shadow-2xl" />
+                <img [src]="assetUrl(banner.imageUrl)" alt="" class="nb-card max-h-[85vh] w-full object-contain p-1.5" />
               </a>
             } @else {
-              <img [src]="assetUrl(banner.imageUrl)" alt="" class="max-h-[85vh] w-full rounded-xl object-contain shadow-2xl" />
+              <img [src]="assetUrl(banner.imageUrl)" alt="" class="nb-card max-h-[85vh] w-full object-contain p-1.5" />
             }
           </div>
         </div>
@@ -60,7 +60,7 @@ export class BannerPopupStackComponent {
     // login (the fetchedForSession guard), and resets on logout so logging
     // back in in the same SPA session shows the popups again.
     effect(() => {
-      const authenticated = this.authService.isAuthenticated();
+      const authenticated = this.authService.isAuthenticated() && this.authService.currentUser()?.role == 'PLAYER';
 
       if (authenticated && !this.fetchedForSession) {
         this.fetchedForSession = true;

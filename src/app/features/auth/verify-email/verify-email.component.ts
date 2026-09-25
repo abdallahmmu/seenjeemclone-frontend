@@ -12,32 +12,30 @@ type VerifyPhase = 'verifying' | 'success' | 'error';
   imports: [RouterLink, TranslatePipe, LoadingSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12">
+    <div class="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-bg px-4 py-12">
       <div class="w-full max-w-sm">
-        <div class="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <div class="nb-card p-8 text-center">
           @switch (phase()) {
             @case ('verifying') {
               <app-loading-spinner [size]="32" />
-              <p class="mt-4 text-sm text-slate-500">{{ 'auth.verifyEmail.verifying' | translate }}</p>
+              <p class="mt-4 text-sm text-ink-soft">{{ 'auth.verifyEmail.verifying' | translate }}</p>
             }
             @case ('success') {
-              <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-600">
-                ✓
-              </div>
-              <h1 class="mt-4 text-lg font-bold text-slate-900">{{ 'auth.verifyEmail.successTitle' | translate }}</h1>
-              <p class="mt-1 text-sm text-slate-500">{{ 'auth.verifyEmail.successSubtitle' | translate }}</p>
+              <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-2 border-ink bg-secondary text-2xl">✓</div>
+              <h1 class="nb-heading mt-4 text-lg text-ink">{{ 'auth.verifyEmail.successTitle' | translate }}</h1>
+              <p class="mt-1 text-sm text-ink-soft">{{ 'auth.verifyEmail.successSubtitle' | translate }}</p>
             }
             @case ('error') {
-              <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-2xl text-red-600">
+              <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-2 border-ink bg-primary text-2xl text-white">
                 ✕
               </div>
-              <h1 class="mt-4 text-lg font-bold text-slate-900">{{ 'auth.verifyEmail.errorTitle' | translate }}</h1>
-              <p class="mt-1 text-sm text-slate-500">{{ errorMessage() }}</p>
+              <h1 class="nb-heading mt-4 text-lg text-ink">{{ 'auth.verifyEmail.errorTitle' | translate }}</h1>
+              <p class="mt-1 text-sm text-ink-soft">{{ errorMessage() }}</p>
             }
           }
 
-          <p class="mt-6 text-center text-sm text-slate-500">
-            <a routerLink="/" class="font-medium text-primary hover:underline">{{ 'auth.verifyEmail.goHome' | translate }}</a>
+          <p class="mt-6 text-center text-sm text-ink-soft">
+            <a routerLink="/" class="nb-link">{{ 'auth.verifyEmail.goHome' | translate }}</a>
           </p>
         </div>
       </div>

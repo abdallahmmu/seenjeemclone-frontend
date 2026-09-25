@@ -10,46 +10,42 @@ import { UserMenuComponent } from '../../shared/components/user-menu/user-menu.c
   imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe, UserMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex min-h-screen flex-col bg-slate-50">
-      <header class="border-b border-slate-200 bg-white">
+    <div class="flex min-h-screen flex-col bg-bg">
+      <header class="border-b-2 border-ink bg-surface">
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <a
-            routerLink="/"
-            class="bg-linear-to-l from-primary via-secondary to-primary bg-clip-text text-xl font-extrabold text-transparent"
-          >
-            سين جيم
-          </a>
+          <a routerLink="/" class="nb-heading text-xl text-primary sm:text-2xl"> سين جيم </a>
 
-          <nav class="hidden items-center gap-6 text-sm font-medium text-slate-600 sm:flex">
-            <a routerLink="/" class="transition hover:text-primary" routerLinkActive="text-primary" [routerLinkActiveOptions]="{ exact: true }">{{
-              'nav.home' | translate
+          <nav class="hidden items-center gap-6 text-sm font-semibold text-ink-soft sm:flex">
+            <a
+              routerLink="/"
+              class="nb-underline transition-colors hover:text-primary"
+              routerLinkActive="is-active text-primary"
+              [routerLinkActiveOptions]="{ exact: true }"
+              >{{ 'nav.home' | translate }}</a
+            >
+            <a routerLink="/play" class="nb-underline transition-colors hover:text-primary" routerLinkActive="is-active text-primary">{{
+              'nav.play' | translate
             }}</a>
-            <a routerLink="/play" class="transition hover:text-primary" routerLinkActive="text-primary">{{ 'nav.play' | translate }}</a>
-            <a routerLink="/shop" class="transition hover:text-primary" routerLinkActive="text-primary">{{ 'nav.shop' | translate }}</a>
+            <a routerLink="/shop" class="nb-underline transition-colors hover:text-primary" routerLinkActive="is-active text-primary">{{
+              'nav.shop' | translate
+            }}</a>
             @if (authService.isAdmin()) {
-              <a routerLink="/admin" class="transition hover:text-primary" routerLinkActive="text-primary">{{ 'nav.admin' | translate }}</a>
+              <a routerLink="/admin" class="nb-underline transition-colors hover:text-primary" routerLinkActive="is-active text-primary">{{
+                'nav.admin' | translate
+              }}</a>
             }
           </nav>
 
           <div class="flex items-center gap-3">
-            <button
-              type="button"
-              class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100"
-              (click)="translateService.toggleLang()"
-            >
+            <button type="button" class="nb-btn nb-btn-outline px-2.5 py-1 text-xs" (click)="translateService.toggleLang()">
               {{ translateService.lang() === 'en' ? 'AR' : 'EN' }}
             </button>
 
             @if (authService.isAuthenticated()) {
               <app-user-menu />
             } @else {
-              <a routerLink="/login" class="rounded-md px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100">{{
-                'nav.login' | translate
-              }}</a>
-              <a
-                routerLink="/register"
-                class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-dark"
-              >
+              <a routerLink="/login" class="nb-underline px-1 py-1.5 text-sm font-semibold text-ink">{{ 'nav.login' | translate }}</a>
+              <a routerLink="/register" class="nb-btn nb-btn-primary px-3 py-1.5 text-sm">
                 {{ 'nav.register' | translate }}
               </a>
             }
@@ -61,9 +57,7 @@ import { UserMenuComponent } from '../../shared/components/user-menu/user-menu.c
         <router-outlet />
       </main>
 
-      <footer class="border-t border-slate-200 bg-white py-6 text-center text-sm text-slate-500">
-        © {{ year }} Seenjeem
-      </footer>
+      <footer class="border-t-2 border-ink bg-surface py-6 text-center text-sm text-ink-soft"> © {{ year }} Seenjeem </footer>
     </div>
   `,
 })
